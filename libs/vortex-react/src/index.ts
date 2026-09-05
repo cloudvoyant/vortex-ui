@@ -297,3 +297,13 @@ export {
   type ChatMessageReactionsProps,
   type ChatMessageReactionPickerProps,
 } from './chat-message';
+export {
+  Chat,
+  ChatThread,
+  ChatInput,
+  ChatTypingIndicator,
+  type ChatProps,
+  type ChatThreadProps,
+  type ChatInputProps,
+  type ChatTypingIndicatorProps,
+} from './chat';

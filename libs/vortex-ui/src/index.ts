@@ -368,3 +368,19 @@ export {
   type ChatReactionPickerVariant,
   type ChatReactionPickerProps,
 } from './chat-reaction';
+export {
+  chatRootBase,
+  chatThreadBase,
+  chatThreadContentBase,
+  chatInputRootBase,
+  chatInputRowBase,
+  chatInputTextareaBase,
+  chatInputAttachmentsBase,
+  chatInputAttachmentChipBase,
+  chatInputAttachmentRemoveBase,
+  chatInputAttachTriggerBase,
+  chatTypingIndicatorBase,
+  chatTypingDotBase,
+  type ChatProps,
+  type ChatInputSubmit,
+} from './chat';
