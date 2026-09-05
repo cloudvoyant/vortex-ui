@@ -46,5 +46,23 @@ for (const framework of FRAMEWORKS) {
       await visibleUp.click();
       await expect(demo.locator('[data-reaction="thumbs-up"]').first()).toContainText('1');
     });
+
+    test('reaction picker opens on Enter and dismisses on Escape', async ({ page }) => {
+      await page.goto('components/chat-message');
+      await selectFramework(page, framework);
+      const scope = page.locator(`[data-example-id="reactions-emoji"] [data-fw="${framework}"]`).first();
+      const trigger = scope.locator('[data-reaction-picker]').first();
+      // Drive from the focused element (Ark popover keyboard support). Retry the
+      // open in case the island is still hydrating.
+      await expect(async () => {
+        await trigger.focus();
+        await page.keyboard.press('Enter');
+        await expect(page.locator('[role="menu"][aria-label="Add reaction"]:visible').first()).toBeVisible({
+          timeout: 2000,
+        });
+      }).toPass({ timeout: 15000 });
+      await page.keyboard.press('Escape');
+      await expect(page.locator('[role="menu"][aria-label="Add reaction"]:visible')).toHaveCount(0);
+    });
   });
 }

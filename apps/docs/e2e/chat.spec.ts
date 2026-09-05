@@ -20,10 +20,15 @@ for (const framework of FRAMEWORKS) {
       await expect(island.getByText('Yep, green across the board.')).toBeVisible();
     });
 
-    test('Enter sends and clears the draft', async ({ page }) => {
+    test('Enter sends and clears the composer; Shift+Enter does not', async ({ page }) => {
       const island = page.locator(`[data-example-id="default"] [data-fw="${framework}"]`).first();
       const draft = island.locator('[data-draft]');
-      await draft.fill('Hello there');
+      // Shift+Enter inserts a newline instead of sending.
+      await draft.fill('First line');
+      await draft.press('Shift+Enter');
+      await expect(draft).toHaveValue(/First line/);
+      // Plain Enter sends and clears the draft.
+      await draft.fill('Send me');
       await draft.press('Enter');
       await expect(draft).toHaveValue('');
     });

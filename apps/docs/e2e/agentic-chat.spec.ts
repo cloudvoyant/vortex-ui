@@ -1,8 +1,7 @@
 // apps/docs/e2e/agentic-chat.spec.ts
 // Behavior coverage for AgentChat, matrixed over React and Svelte via the docs
 // demo islands: sending a message streams an agent reply through the status
-// transitions and renders markdown. Svelte lands in Phase 4; its rows are
-// skipped until then (Phase 5 removes this guard).
+// transitions and renders markdown (keyboard Enter-to-send).
 import { selectFramework } from './helpers';
 import { test, expect } from '@playwright/test';
 
@@ -18,6 +17,8 @@ for (const framework of FRAMEWORKS) {
       const input = island.locator('textarea').first();
       await input.fill('Hello agent');
       await input.press('Enter');
+      // Enter sends: the composer clears for keyboard input.
+      await expect(input).toHaveValue('');
 
       const thread = island.locator('[data-agent-thread]').first();
       await expect(thread.getByText('Hello agent')).toBeVisible();
