@@ -23,14 +23,29 @@ for (const framework of FRAMEWORKS) {
     test('Enter sends and clears the composer; Shift+Enter does not', async ({ page }) => {
       const island = page.locator(`[data-example-id="default"] [data-fw="${framework}"]`).first();
       const draft = island.locator('[data-draft]');
+      const thread = island.locator('[data-thread-content]').first();
       // Shift+Enter inserts a newline instead of sending.
       await draft.fill('First line');
       await draft.press('Shift+Enter');
       await expect(draft).toHaveValue(/First line/);
-      // Plain Enter sends and clears the draft.
+      await expect(thread.getByText('First line')).toHaveCount(0);
+      // Plain Enter sends, clears the draft, and appends the message to the thread.
       await draft.fill('Send me');
       await draft.press('Enter');
       await expect(draft).toHaveValue('');
+      await expect(thread.getByText('Send me')).toBeVisible();
+    });
+
+    test('send button is disabled when empty and sends when typed', async ({ page }) => {
+      const island = page.locator(`[data-example-id="default"] [data-fw="${framework}"]`).first();
+      const draft = island.locator('[data-draft]');
+      const sendBtn = island.locator('[aria-label="Send message"]').first();
+      await expect(sendBtn).toBeDisabled();
+      await draft.fill('Via the send button');
+      await expect(sendBtn).toBeEnabled();
+      await sendBtn.click();
+      await expect(draft).toHaveValue('');
+      await expect(island.locator('[data-thread-content]').first().getByText('Via the send button')).toBeVisible();
     });
 
     test('sending state renders at reduced opacity bubble', async ({ page }) => {
