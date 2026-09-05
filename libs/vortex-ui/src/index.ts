@@ -381,6 +381,18 @@ export {
   chatInputAttachTriggerBase,
   chatTypingIndicatorBase,
   chatTypingDotBase,
+  chatStreamingCursorBase,
   type ChatProps,
   type ChatInputSubmit,
 } from './chat';
+export {
+  agenticChatReducer,
+  initialAgenticChatState,
+  makeInitialAgenticChatState,
+  type AgentStreamStatus,
+  type AgenticMessage,
+  type AgentStreamingState,
+  type AgenticChatState,
+  type AgenticChatAction,
+} from './agentic-chat';
+export { renderChatMarkdown, chatMarkdownProseBase } from './chat-markdown';

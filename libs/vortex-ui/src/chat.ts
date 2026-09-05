@@ -25,6 +25,9 @@ export const chatInputAttachTriggerBase =
 export const chatTypingIndicatorBase = 'flex items-center gap-1 px-4 py-2 text-muted-foreground';
 export const chatTypingDotBase = 'inline-block size-1.5 animate-bounce rounded-full bg-muted-foreground';
 
+export const chatStreamingCursorBase =
+  'ml-0.5 inline-block h-4 w-0.5 translate-y-0.5 bg-foreground/70 motion-safe:animate-pulse';
+
 export interface ChatProps {
   layout?: ChatLayout;
   className?: string;

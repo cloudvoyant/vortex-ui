@@ -50,6 +50,7 @@
     "@ark-ui/react": "catalog:",
     "@cloudvoyant/vortex-ui": "workspace:*",
     "@tanstack/charts": "catalog:",
+    "@tanstack/react-virtual": "catalog:",
     "lucide-react": "catalog:"
   },
   "devDependencies": {

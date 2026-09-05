@@ -307,3 +307,14 @@ export {
   type ChatInputProps,
   type ChatTypingIndicatorProps,
 } from './chat';
+export {
+  AgentChat,
+  AgentThread,
+  AgentStreamingMessage,
+  useAgenticChat,
+  useChatMarkdown,
+  type AgentChatProps,
+  type AgentThreadProps,
+  type AgentStreamingMessageProps,
+  type UseAgenticChatOptions,
+} from './agent-chat';
