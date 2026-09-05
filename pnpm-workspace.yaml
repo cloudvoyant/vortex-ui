@@ -37,6 +37,7 @@ catalog:
   manim-web: ^0.3.24
   marked: ^15.0.6
   mermaid: ^11.16.0
+  'phosphor-svelte': ^3.0.1
   prettier: ^3.0.0
   'prettier-plugin-svelte': ^4.1.1
   react: ^19.2.8

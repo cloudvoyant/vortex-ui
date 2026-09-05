@@ -45,7 +45,9 @@
   "dependencies": {
     "@ark-ui/svelte": "catalog:",
     "@cloudvoyant/vortex-ui": "workspace:*",
-    "@tanstack/charts": "catalog:"
+    "@tanstack/charts": "catalog:",
+    "@tanstack/svelte-virtual": "catalog:",
+    "phosphor-svelte": "catalog:"
   },
   "devDependencies": {
     "@sveltejs/package": "catalog:",

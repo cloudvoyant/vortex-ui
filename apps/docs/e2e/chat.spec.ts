@@ -9,10 +9,6 @@ const FRAMEWORKS = ['react', 'svelte'] as const;
 
 for (const framework of FRAMEWORKS) {
   test.describe(`Chat docs page · ${framework}`, () => {
-    // Svelte parity lands in Phase 4 — until its demo islands render, skip the
-    // Svelte matrix rows. Phase 5 removes this guard once Svelte is implemented.
-    test.skip(framework === 'svelte', 'svelte not yet implemented');
-
     test.beforeEach(async ({ page }) => {
       await page.goto('components/chat');
       await selectFramework(page, framework);

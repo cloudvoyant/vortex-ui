@@ -9,10 +9,6 @@ const FRAMEWORKS = ['react', 'svelte'] as const;
 
 for (const framework of FRAMEWORKS) {
   test.describe(`ChatMessage docs page · ${framework}`, () => {
-    // Svelte parity lands in Phase 4 — until its demo islands render, skip the
-    // Svelte matrix rows. Phase 5 removes this guard once Svelte is implemented.
-    test.skip(framework === 'svelte', 'svelte not yet implemented');
-
     test('renders identity variants', async ({ page }) => {
       await page.goto('components/chat-message');
       await selectFramework(page, framework);
@@ -39,10 +35,15 @@ for (const framework of FRAMEWORKS) {
       await page.goto('components/chat-message');
       await selectFramework(page, framework);
       const demo = page.locator('[data-example-id="reactions-rate"]').locator(`[data-fw="${framework}"]`);
-      await demo.locator('[data-reaction-picker="rate"]').first().click();
-      const upItem = page.locator('[role="menuitem"][data-reaction="thumbs-up"]').first();
-      await expect(upItem).toBeVisible();
-      await upItem.click();
+      // The trigger may not be hydrated the instant the island paints (client:load),
+      // so retry until the menu actually opens; target the visible menuitem only
+      // (a closed popover's content may sit hidden in the DOM).
+      const visibleUp = page.locator('[role="menuitem"][data-reaction="thumbs-up"]:visible').first();
+      await expect(async () => {
+        await demo.locator('[data-reaction-picker="rate"]').first().click();
+        await expect(visibleUp).toBeVisible({ timeout: 2000 });
+      }).toPass({ timeout: 15000 });
+      await visibleUp.click();
       await expect(demo.locator('[data-reaction="thumbs-up"]').first()).toContainText('1');
     });
   });

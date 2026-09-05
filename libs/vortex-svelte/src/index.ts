@@ -56,3 +56,6 @@ export { default as YoutubeTimestampAt } from './YoutubeTimestampAt.svelte';
 export { default as Chart } from './Chart.svelte';
 export { default as Manim } from './Manim.svelte';
 export * from './questions';
+export * from './chat-message';
+export * from './chat';
+export * from './agent-chat';

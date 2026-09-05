@@ -10,8 +10,6 @@ const FRAMEWORKS = ['react', 'svelte'] as const;
 
 for (const framework of FRAMEWORKS) {
   test.describe(`AgentChat docs page · ${framework}`, () => {
-    test.skip(framework === 'svelte', 'svelte not yet implemented');
-
     test('streams an agent reply and renders it', async ({ page }) => {
       await page.goto('components/agentic-chat');
       await selectFramework(page, framework);
