@@ -49,9 +49,9 @@
   "dependencies": {
     "@ark-ui/react": "catalog:",
     "@cloudvoyant/vortex-ui": "workspace:*",
+    "@phosphor-icons/react": "catalog:",
     "@tanstack/charts": "catalog:",
-    "@tanstack/react-virtual": "catalog:",
-    "lucide-react": "catalog:"
+    "@tanstack/react-virtual": "catalog:"
   },
   "devDependencies": {
     "@types/katex": "catalog:",

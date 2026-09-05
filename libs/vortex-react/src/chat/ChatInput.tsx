@@ -1,7 +1,7 @@
 // libs/vortex-react/src/chat/ChatInput.tsx
 // Composed for vortex-ui on @cloudvoyant/vortex-react Textarea + Button; no upstream chat primitive.
 import { useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react';
-import { Paperclip, Send, X } from 'lucide-react';
+import { PaperclipIcon, SendIcon, XIcon } from '../chat-icons';
 import { Textarea } from '../textarea';
 import { Button } from '../button';
 import {
@@ -69,7 +69,7 @@ export function ChatInput({
         <div className={chatInputAttachmentsBase}>
           {attachments.map((a) => (
             <span key={a.id} className={chatInputAttachmentChipBase} data-attachment>
-              <Paperclip className="size-3" aria-hidden="true" />
+              <PaperclipIcon className="size-3" aria-hidden="true" />
               {a.name}
               <button
                 type="button"
@@ -77,7 +77,7 @@ export function ChatInput({
                 aria-label={`Remove ${a.name}`}
                 onClick={() => removeAttachment(a.id)}
               >
-                <X className="size-3" aria-hidden="true" />
+                <XIcon className="size-3" aria-hidden="true" />
               </button>
             </span>
           ))}
@@ -93,7 +93,7 @@ export function ChatInput({
               disabled={disabled}
               onClick={() => fileRef.current?.click()}
             >
-              <Paperclip className="size-4" aria-hidden="true" />
+              <PaperclipIcon className="size-4" aria-hidden="true" />
             </button>
             <input ref={fileRef} type="file" multiple hidden onChange={handleFiles} data-file-input />
           </>
@@ -115,7 +115,7 @@ export function ChatInput({
           disabled={disabled || (!draft.trim() && attachments.length === 0)}
           onClick={send}
         >
-          <Send className="size-4" aria-hidden="true" />
+          <SendIcon className="size-4" aria-hidden="true" />
         </Button>
       </div>
     </div>

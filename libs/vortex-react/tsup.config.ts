@@ -18,6 +18,6 @@ export default defineConfig({
     'manim-web',
     '@tanstack/charts',
     '@tanstack/react-virtual',
-    'lucide-react',
+    '@phosphor-icons/react',
   ],
 });

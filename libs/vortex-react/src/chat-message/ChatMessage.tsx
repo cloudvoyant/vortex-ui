@@ -13,7 +13,7 @@ import {
   cn,
 } from '@cloudvoyant/vortex-ui';
 import type { ChatMessageProps as ChatMessageBaseProps, ChatMessageAttachment } from '@cloudvoyant/vortex-ui';
-import { Paperclip } from 'lucide-react';
+import { PaperclipIcon } from '../chat-icons';
 import { useChatLayout } from './ChatContext';
 import { ChatMessageReactions } from './ChatMessageReactions';
 
@@ -58,7 +58,7 @@ export function ChatMessage({
           <div className={chatMessageAttachmentsBase}>
             {attachments.map((a: ChatMessageAttachment) => (
               <div key={a.id} className={chatMessageAttachmentBase} data-attachment>
-                <Paperclip className="size-3.5" aria-hidden="true" />
+                <PaperclipIcon className="size-3.5" aria-hidden="true" />
                 <span>{a.name}</span>
               </div>
             ))}

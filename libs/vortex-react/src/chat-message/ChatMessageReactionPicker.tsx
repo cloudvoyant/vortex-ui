@@ -1,6 +1,6 @@
 // libs/vortex-react/src/chat-message/ChatMessageReactionPicker.tsx
 // Composed for vortex-ui on the vortex Popover; emoji grid or thumbs up/down picker.
-import { SmilePlus, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { SmileyIcon, ThumbsUpIcon, ThumbsDownIcon } from '../chat-icons';
 import {
   chatReactionPickerTriggerBase,
   chatReactionPickerGridBase,
@@ -61,7 +61,7 @@ function RatePicker({ onReact }: { onReact?: (key: string) => void }) {
           popover.setOpen(false);
         }}
       >
-        <ThumbsUp className="size-4" aria-hidden="true" />
+        <ThumbsUpIcon className="size-4" aria-hidden="true" />
       </button>
       <button
         type="button"
@@ -74,7 +74,7 @@ function RatePicker({ onReact }: { onReact?: (key: string) => void }) {
           popover.setOpen(false);
         }}
       >
-        <ThumbsDown className="size-4" aria-hidden="true" />
+        <ThumbsDownIcon className="size-4" aria-hidden="true" />
       </button>
     </div>
   );
@@ -93,7 +93,7 @@ export function ChatMessageReactionPicker({
         aria-label="Add reaction"
         data-reaction-picker={variant}
       >
-        <SmilePlus className="size-4" aria-hidden="true" />
+        <SmileyIcon className="size-4" aria-hidden="true" />
       </PopoverTrigger>
       <PopoverContent className="w-auto p-2">
         {variant === 'rate' ? <RatePicker onReact={onReact} /> : <EmojiGrid emojis={emojis} onReact={onReact} />}

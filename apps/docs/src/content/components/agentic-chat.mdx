@@ -36,9 +36,9 @@ The state machine hook (React) / store (Svelte). Returns `messages`, `streaming`
 
 #### Props
 
-| Prop     | Type                             | Default     | Description                                  |
-| -------- | -------------------------------- | ----------- | -------------------------------------------- |
-| `layout` | `'slack' \| 'ios' \| 'minimal'`  | `'minimal'` | Layout supplied to nested messages via context. |
+| Prop     | Type                            | Default     | Description                                     |
+| -------- | ------------------------------- | ----------- | ----------------------------------------------- |
+| `layout` | `'slack' \| 'ios' \| 'minimal'` | `'minimal'` | Layout supplied to nested messages via context. |
 
 Accepts all Ark `div` props plus `className`/`class`.
 
@@ -46,20 +46,20 @@ Accepts all Ark `div` props plus `className`/`class`.
 
 #### Props
 
-| Prop          | Type                | Default | Description                                        |
-| ------------- | ------------------- | ------- | -------------------------------------------------- |
-| `messages`    | `AgenticMessage[]`  | —       | The thread's messages; agent messages use markdown. |
-| `onScrollTop` | `() => void`        | —       | Fires when scrolled to top — load older history.    |
-| `estimateSize`| `number`            | `72`    | Estimated row height (px) for the virtualizer.      |
+| Prop           | Type               | Default | Description                                         |
+| -------------- | ------------------ | ------- | --------------------------------------------------- |
+| `messages`     | `AgenticMessage[]` | —       | The thread's messages; agent messages use markdown. |
+| `onScrollTop`  | `() => void`       | —       | Fires when scrolled to top — load older history.    |
+| `estimateSize` | `number`           | `72`    | Estimated row height (px) for the virtualizer.      |
 
 ### AgentStreamingMessage
 
 #### Props
 
-| Prop        | Type                  | Default   | Description                                  |
-| ----------- | --------------------- | --------- | -------------------------------------------- |
+| Prop        | Type                  | Default   | Description                                      |
+| ----------- | --------------------- | --------- | ------------------------------------------------ |
 | `streaming` | `AgentStreamingState` | —         | The live streaming record from `useAgenticChat`. |
-| `from`      | `string`              | `'Agent'` | Author label.                                |
+| `from`      | `string`              | `'Agent'` | Author label.                                    |
 
 ## Theming
 
