@@ -1,0 +1,62 @@
+---
+title: ChatMessage
+description: A single chat message with author, timestamp, delivery state, and reactions, for React and Svelte.
+order: 1
+group: chat
+---
+
+import Demo from '../../components/Demo.astro';
+import Examples from '../../components/Examples.astro';
+
+`ChatMessage` renders a single message in a chat thread. It is composed for vortex-ui on [Ark UI](https://ark-ui.com/docs/guides/factory)'s factory element (there is no upstream headless chat primitive) and shares the `chatMessage*` cva variants + theme from `@cloudvoyant/vortex-ui`. Message identity is the `variant` prop (`default | user | agent`); the surrounding chat layout (`slack | ios | minimal`) is supplied by the `Chat`/`AgentChat` layout context, defaulting to a flat slack style when a message is used standalone.
+
+<Demo component="chat-message" example="default" />
+
+## Examples
+
+<Examples component="chat-message" exclude="default" />
+
+## API Reference
+
+### ChatMessage
+
+#### Props
+
+| Prop          | Type                                        | Default     | Description                                            |
+| ------------- | ------------------------------------------- | ----------- | ------------------------------------------------------ |
+| `variant`     | `'default' \| 'user' \| 'agent'`            | `'default'` | Message identity, driving alignment and bubble colour. |
+| `from`        | `string`                                    | —           | Author name shown in the meta row.                     |
+| `at`          | `Date`                                      | —           | Timestamp shown in the meta row.                       |
+| `state`       | `'sent' \| 'sending' \| 'error'`            | `'sent'`    | Delivery state; `sending` dims, `error` recolours.     |
+| `reactions`   | `Record<string, number>`                    | —           | Reaction map (emoji or `thumbs-up`/`thumbs-down`).     |
+| `attachments` | `ChatMessageAttachment[]`                   | —           | Attachment list rendered below the bubble.             |
+| `className`   | `string`                                    | —           | Merged onto the row via `cn`.                          |
+
+Accepts all Ark factory `div` props except `from` (repurposed as the author name).
+
+### ChatMessageReactions
+
+#### Props
+
+| Prop        | Type                       | Default | Description                                    |
+| ----------- | -------------------------- | ------- | ---------------------------------------------- |
+| `reactions` | `Record<string, number>`  | —       | Reaction counts to render as chips.            |
+| `onReact`   | `(key: string) => void`   | —       | Called when a reaction chip is clicked.        |
+| `className` | `string`                  | —       | Merged onto the list via `cn`.                 |
+
+### ChatMessageReactionPicker
+
+#### Props
+
+| Prop        | Type                      | Default    | Description                                       |
+| ----------- | ------------------------- | ---------- | ------------------------------------------------- |
+| `variant`   | `'emoji' \| 'rate'`       | `'emoji'`  | Emoji grid or thumbs up/down picker.              |
+| `emojis`    | `readonly string[]`       | 8 defaults | Emoji set for the `emoji` variant.                |
+| `onReact`   | `(key: string) => void`   | —          | Called with the chosen reaction key.              |
+| `className` | `string`                  | —          | Merged onto the trigger via `cn`.                 |
+
+Built on the vortex [Popover](/components/popover); accessibility (focus, dismissal) comes from Ark's popover state machine.
+
+## Theming
+
+No theme extension. iOS user bubbles reuse `--primary`/`--primary-foreground`, other bubbles reuse `--muted`/`--card`/`--border`, and the error state reuses `--danger`.

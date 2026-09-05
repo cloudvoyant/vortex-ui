@@ -282,6 +282,9 @@ importers:
       '@tanstack/charts':
         specifier: 'catalog:'
         version: 0.16.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(svelte@5.56.9(@typescript-eslint/types@8.67.0))
+      lucide-react:
+        specifier: 'catalog:'
+        version: 1.32.0(react@19.2.8)
     devDependencies:
       '@types/katex':
         specifier: 'catalog:'

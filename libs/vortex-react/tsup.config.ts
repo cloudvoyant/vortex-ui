@@ -17,5 +17,6 @@ export default defineConfig({
     'recharts',
     'manim-web',
     '@tanstack/charts',
+    'lucide-react',
   ],
 });

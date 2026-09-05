@@ -75,5 +75,8 @@ export default defineConfig({
     '/docs/components/assessment': '/components/quiz',
     '/docs/components/quiz': '/components/quiz',
     '/docs/components/prev-next': '/components/prev-next',
+    '/docs/components/chat-message': '/components/chat-message',
+    '/docs/components/chat': '/components/chat',
+    '/docs/components/agentic-chat': '/components/agentic-chat',
   },
 });

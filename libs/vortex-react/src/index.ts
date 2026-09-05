@@ -287,3 +287,13 @@ export {
   type NumericQuestionProps,
   type QuizProps,
 } from './questions';
+export {
+  ChatMessage,
+  ChatMessageReactions,
+  ChatMessageReactionPicker,
+  ChatLayoutContext,
+  useChatLayout,
+  type ChatMessageProps,
+  type ChatMessageReactionsProps,
+  type ChatMessageReactionPickerProps,
+} from './chat-message';
