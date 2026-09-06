@@ -44,10 +44,18 @@
     "tailwind-merge": "catalog:"
   },
   "peerDependencies": {
+    "dompurify": "catalog:",
+    "marked": "catalog:",
     "mermaid": "catalog:",
     "shiki": "catalog:"
   },
   "peerDependenciesMeta": {
+    "dompurify": {
+      "optional": true
+    },
+    "marked": {
+      "optional": true
+    },
     "mermaid": {
       "optional": true
     },
@@ -58,8 +66,10 @@
   "devDependencies": {
     "@types/katex": "catalog:",
     "@types/node": "catalog:",
+    "dompurify": "catalog:",
     "katex": "catalog:",
     "manim-web": "catalog:",
+    "marked": "catalog:",
     "mermaid": "catalog:",
     "shiki": "catalog:",
     "vitest": "catalog:"

@@ -1,0 +1,65 @@
+---
+title: Chat
+description: A composed chat surface — thread, messages, and composer — for React and Svelte.
+order: 2
+group: chat
+---
+
+import Demo from '../../components/Demo.astro';
+import Examples from '../../components/Examples.astro';
+
+Chat composes the [ChatMessage](./chat-message) family into a full conversation surface: a `Chat` layout provider, a scrollable `ChatThread` (with an `onScrollTop` hook for lazy history), a `ChatInput` composer with attachments, and a `ChatTypingIndicator`. It is composed from vortex-ui primitives (`Scroll`, `Textarea`, `Button`) on Ark UI's factory — there is no upstream chat primitive. Pick a `layout` of `slack`, `ios`, or `minimal`; the layout flows to every nested `ChatMessage` via context.
+
+<Demo component="chat" example="default" />
+
+## Examples
+
+<Examples component="chat" exclude="default" />
+
+## Future work
+
+This is the plain (non-agentic) chat surface. Agentic streaming, markdown-rendered agent messages, and virtualization live in [AgentChat](./agentic-chat). Planned additions across the chat suite — Replies, Events, Thinking, Edits, AssistantThinking/Activity, SubagentPanel, AssistantQuestion, AssistantSuggestion — are not yet built.
+
+## API Reference
+
+### Chat
+
+#### Props
+
+| Prop        | Type                            | Default   | Description                                           |
+| ----------- | ------------------------------- | --------- | ----------------------------------------------------- |
+| `layout`    | `'slack' \| 'ios' \| 'minimal'` | `'slack'` | Layout style, supplied to nested `ChatMessage` parts. |
+| `className` | `string`                        | —         | Merged via `cn`. Also accepts all Ark `div` props.    |
+
+### ChatThread
+
+#### Props
+
+| Prop               | Type         | Default | Description                                   |
+| ------------------ | ------------ | ------- | --------------------------------------------- |
+| `onScrollTop`      | `() => void` | —       | Fired once when the viewport reaches the top. |
+| `contentClassName` | `string`     | —       | Class for the inner content column.           |
+| `className`        | `string`     | —       | Class for the scroll root.                    |
+
+### ChatInput
+
+#### Props
+
+| Prop               | Type                           | Default             | Description                                  |
+| ------------------ | ------------------------------ | ------------------- | -------------------------------------------- |
+| `onSend`           | `(s: ChatInputSubmit) => void` | —                   | Called with `{ text, attachments }` on send. |
+| `placeholder`      | `string`                       | `'Type a message…'` | Textarea placeholder.                        |
+| `allowAttachments` | `boolean`                      | `true`              | Show the attach-file control.                |
+| `disabled`         | `boolean`                      | `false`             | Disable the composer.                        |
+
+### ChatTypingIndicator
+
+#### Props
+
+| Prop    | Type     | Default               | Description                       |
+| ------- | -------- | --------------------- | --------------------------------- |
+| `label` | `string` | `'Someone is typing'` | Accessible label (`role=status`). |
+
+## Theming
+
+No theme extension. iOS user bubbles reuse `--primary`/`--primary-foreground`; other bubbles reuse `--muted`/`--card`; borders use `--border`.

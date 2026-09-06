@@ -17,5 +17,7 @@ export default defineConfig({
     'recharts',
     'manim-web',
     '@tanstack/charts',
+    '@tanstack/react-virtual',
+    '@phosphor-icons/react',
   ],
 });

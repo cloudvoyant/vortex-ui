@@ -1,0 +1,66 @@
+---
+title: AgentChat
+description: A higher-level agentic chat surface with streaming, markdown, and virtualization, for React and Svelte.
+order: 3
+group: chat
+---
+
+import Demo from '../../components/Demo.astro';
+import Examples from '../../components/Examples.astro';
+
+`AgentChat` composes the [Chat](/components/chat) family into an agent-facing surface: a virtualized thread, a live streaming message, and the `useAgenticChat` state machine. Agent messages render sanitized markdown (fenced code included), so a coding agent's replies format correctly. It shares its layout variants (`slack | ios | minimal`) and cva/theme with `@cloudvoyant/vortex-ui`.
+
+<Demo component="agentic-chat" example="streaming" />
+
+## Examples
+
+<Examples component="agentic-chat" exclude="streaming" />
+
+## Dependencies
+
+`AgentChat`'s thread virtualizes long histories with TanStack Virtual. `@tanstack/react-virtual` (React) and `@tanstack/svelte-virtual` (Svelte) ship as regular dependencies of the framework packages — they are externalized from the bundle, never duplicated.
+
+Agent-message markdown is rendered by `renderChatMarkdown`, which uses `marked` + `dompurify`. Both are **optional** (lazy-loaded) peers of `@cloudvoyant/vortex-ui`, never bundled: they are only fetched the first time an agent message renders. `dompurify` needs a DOM, so agent-message content renders client-side.
+
+## Future work
+
+`AgentChat` will grow to cover richer agent interactions, each shipping later: Replies, Events, Thinking, Edits, AssistantThinking/Activity, SubagentPanel, AssistantQuestion, and AssistantSuggestion. The current release covers streaming text + markdown; the API is designed so these layer in without breaking the `useAgenticChat` contract.
+
+## API Reference
+
+### useAgenticChat
+
+The state machine hook (React) / store (Svelte). Returns `messages`, `streaming` (`{ status, content }`), `addMessage`, `prependMessages`, and `setStreaming`. `status` is one of `Waiting | Streaming | Completed | Retrying | Cancelled`.
+
+### AgentChat
+
+#### Props
+
+| Prop     | Type                            | Default     | Description                                     |
+| -------- | ------------------------------- | ----------- | ----------------------------------------------- |
+| `layout` | `'slack' \| 'ios' \| 'minimal'` | `'minimal'` | Layout supplied to nested messages via context. |
+
+Accepts all Ark `div` props plus `className`/`class`.
+
+### AgentThread
+
+#### Props
+
+| Prop           | Type               | Default | Description                                         |
+| -------------- | ------------------ | ------- | --------------------------------------------------- |
+| `messages`     | `AgenticMessage[]` | —       | The thread's messages; agent messages use markdown. |
+| `onScrollTop`  | `() => void`       | —       | Fires when scrolled to top — load older history.    |
+| `estimateSize` | `number`           | `72`    | Estimated row height (px) for the virtualizer.      |
+
+### AgentStreamingMessage
+
+#### Props
+
+| Prop        | Type                  | Default   | Description                                      |
+| ----------- | --------------------- | --------- | ------------------------------------------------ |
+| `streaming` | `AgentStreamingState` | —         | The live streaming record from `useAgenticChat`. |
+| `from`      | `string`              | `'Agent'` | Author label.                                    |
+
+## Theming
+
+No new theme tokens. Agent bubbles reuse `--card`/`--border`; the streaming cursor uses `--foreground`. Markdown prose uses Tailwind Typography utilities scoped to the message container.
