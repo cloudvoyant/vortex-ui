@@ -18,10 +18,12 @@ export function defaultListboxFilter(item: ListboxItemData, query: string): bool
   return item.label.toLowerCase().includes(query.toLowerCase());
 }
 
-export const listboxRootBase = 'flex flex-col gap-1';
+// The root owns the visual surface so a filter input and the scrollable list can be sibling
+// elements (as Ark requires) while still appearing inside one listbox.
+export const listboxRootBase =
+  'flex flex-col overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-sm';
 
-export const listboxContentBase =
-  'max-h-72 overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-sm outline-none';
+export const listboxContentBase = 'max-h-72 overflow-y-auto p-1 outline-none';
 
 export const listboxItemBase =
   'relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 pe-8 text-sm outline-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[state=checked]:font-medium data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0';
@@ -31,7 +33,7 @@ export const listboxItemTextBase = 'flex w-full flex-1 items-center gap-2';
 export const listboxItemIndicatorBase = 'absolute inset-y-0 end-2 flex items-center justify-center text-foreground';
 
 export const listboxInputBase =
-  'mb-1 w-full rounded-md border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30';
+  'w-full border-b border-input bg-transparent px-2.5 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30';
 
 export const listboxEmptyBase = 'px-2 py-6 text-center text-sm text-muted-foreground';
 

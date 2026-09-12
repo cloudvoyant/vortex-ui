@@ -9,9 +9,17 @@ export const proseVariants = cva(
   [
     'text-foreground',
     'max-w-none',
-    '[&_h1]:font-bold [&_h1]:tracking-tight [&_h1]:mt-0 [&_h1]:mb-4',
+    // Top spacing scales WITH the heading — a bigger heading gets more space above it — and the
+    // first child never carries a top margin (otherwise a leading heading opens a large gap).
+    // Previously h1 had mt-0 while h2 had mt-8, so a smaller heading had more top padding than a
+    // larger one.
+    '[&>*:first-child]:mt-0',
+    '[&_h1]:font-bold [&_h1]:tracking-tight [&_h1]:mt-10 [&_h1]:mb-4',
     '[&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:mt-8 [&_h2]:mb-3',
     '[&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-2',
+    '[&_h4]:font-semibold [&_h4]:mt-4 [&_h4]:mb-2',
+    '[&_h5]:font-semibold [&_h5]:mt-4 [&_h5]:mb-1',
+    '[&_h6]:font-semibold [&_h6]:mt-4 [&_h6]:mb-1 [&_h6]:text-muted-foreground',
     '[&_p]:my-4 [&_p]:leading-7',
     '[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:opacity-80',
     '[&_strong]:font-semibold',
@@ -30,9 +38,9 @@ export const proseVariants = cva(
   {
     variants: {
       size: {
-        sm: 'text-sm [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg',
-        base: 'text-base [&_h1]:text-4xl [&_h2]:text-2xl [&_h3]:text-xl',
-        lg: 'text-lg [&_h1]:text-5xl [&_h2]:text-3xl [&_h3]:text-2xl',
+        sm: 'text-sm [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h4]:text-base [&_h5]:text-sm',
+        base: 'text-base [&_h1]:text-4xl [&_h2]:text-2xl [&_h3]:text-xl [&_h4]:text-lg [&_h5]:text-base',
+        lg: 'text-lg [&_h1]:text-5xl [&_h2]:text-3xl [&_h3]:text-2xl [&_h4]:text-xl [&_h5]:text-lg',
       },
     },
     defaultVariants: { size: 'base' },

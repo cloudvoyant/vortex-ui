@@ -2,7 +2,8 @@
 <!-- Filtering is consumer-owned: `visible` is filtered with defaultListboxFilter and the SAME -->
 <!-- array is passed to Listbox and rendered, so collection and children cannot diverge. -->
 <!-- Ark's ListboxInput is a typeahead input with no controlled query prop, so the consumer owns -->
-<!-- the query via plain value/oninput. It must be a SIBLING of ListboxContent. -->
+<!-- the query via plain value/oninput. It is a SIBLING of ListboxContent while the Listbox -->
+<!-- root keeps both controls inside one visual surface. -->
 <script lang="ts">
   import {
     Listbox,
@@ -42,5 +43,6 @@
         <ListboxItemIndicator><Check /></ListboxItemIndicator>
       </ListboxItem>
     {/each}
+    <ListboxEmpty>No fruit matches “{query}”.</ListboxEmpty>
   </ListboxContent>
 </Listbox>

@@ -4,7 +4,8 @@
 // cannot diverge. Ark's ListboxInput is a typeahead input (zag exposes only autoHighlight /
 // keyboardPriority — there is no controlled query prop on the root), so the consumer controls
 // the query with plain HTML value/onChange on the input, while Ark keeps the list linkage.
-// ListboxInput must be a SIBLING of ListboxContent, never inside role="listbox".
+// ListboxInput is a sibling of ListboxContent (never inside role="listbox"), while the
+// styled Listbox root keeps both controls inside one visual surface.
 import { useMemo, useState } from 'react';
 import {
   Listbox,
@@ -13,6 +14,7 @@ import {
   ListboxItemText,
   ListboxItemIndicator,
   ListboxInput,
+  ListboxEmpty,
 } from '@cloudvoyant/vortex-react';
 import { defaultListboxFilter } from '@cloudvoyant/vortex-ui';
 import { Check } from 'lucide-react';
@@ -47,6 +49,7 @@ export default function ReactListboxFiltering() {
             </ListboxItemIndicator>
           </ListboxItem>
         ))}
+        <ListboxEmpty>No fruit matches “{query}”.</ListboxEmpty>
       </ListboxContent>
     </Listbox>
   );
