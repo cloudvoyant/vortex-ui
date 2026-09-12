@@ -137,6 +137,20 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
     [mentionSource, hrefBuilder],
   );
 
+  // Suggestion renders supply viewport coordinates. Recalculate them while the page or a nested
+  // scroll container moves so the fixed menu stays attached to the slash cursor.
+  useEffect(() => {
+    if (!slash.props) return;
+    const updatePosition = () =>
+      setSlash((current) => (current.props ? menuFrom(current.props as SuggestionProps<SlashCommandItem>) : current));
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [slash.props]);
+
   const editor = useEditor({
     extensions,
     editable,

@@ -71,26 +71,33 @@
   let pasteMenuPosition = $state(0);
   let pasteMenuCoords = $state({ left: 0, top: 0 });
 
-  // Update slash menu position only when menu opens
+  function updateSlashMenuPosition() {
+    const props = slashMenuProps;
+    if (!props) return;
+    const rect = props.clientRect?.();
+    if (!rect || rect.left === undefined || rect.top === undefined) return;
+
+    const itemCount = props.items?.length || 0;
+    const menuHeight = Math.min(itemCount * 36 + 8, 320);
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top = spaceBelow < menuHeight && rect.top > spaceBelow ? rect.top - menuHeight - 8 : rect.bottom + 8;
+    slashMenuCoords = { left: rect.left, top };
+  }
+
+  // Reposition on every suggestion update and while any ancestor scrolls, so a fixed menu remains
+  // attached to the slash cursor rather than being left behind in the viewport.
   $effect(() => {
-    if (slashMenuProps) {
-      const rect = slashMenuProps.clientRect?.();
-      if (rect && rect.left !== undefined && rect.top !== undefined) {
-        // Calculate actual menu height based on number of items
-        const itemCount = slashMenuProps.items?.length || 0;
-        const itemHeight = 36; // py-1.5 = 6px + 6px = 12px, plus text ~24px
-        const containerPadding = 8; // p-1 top + bottom
-        const menuHeight = Math.min(itemCount * itemHeight + containerPadding, 320);
+    if (slashMenuProps) updateSlashMenuPosition();
+  });
 
-        const spaceBelow = window.innerHeight - rect.bottom;
-        const spaceAbove = rect.top;
-
-        // Only flip above if actual menu height won't fit below
-        const top = spaceBelow < menuHeight && spaceAbove > spaceBelow ? rect.top - menuHeight - 8 : rect.bottom + 8;
-
-        slashMenuCoords = { left: rect.left, top };
-      }
-    }
+  $effect(() => {
+    if (!slashMenuProps) return;
+    window.addEventListener('scroll', updateSlashMenuPosition, true);
+    window.addEventListener('resize', updateSlashMenuPosition);
+    return () => {
+      window.removeEventListener('scroll', updateSlashMenuPosition, true);
+      window.removeEventListener('resize', updateSlashMenuPosition);
+    };
   });
 
   // Extract title from content (first H1)
