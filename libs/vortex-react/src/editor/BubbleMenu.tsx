@@ -2,7 +2,7 @@
 // React parity of BubbleMenu.svelte: the selection toolbar. Renders through Tiptap's React
 // BubbleMenu and composes vortex ToggleGroup + ColorPicker with matching mark and alignment
 // actions in each framework.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BubbleMenu as TiptapBubbleMenu } from '@tiptap/react/menus';
 import type { Editor } from '@tiptap/react';
 import {
@@ -28,12 +28,41 @@ export interface BubbleMenuProps {
 export function BubbleMenu({ editor }: BubbleMenuProps) {
   const [isEditingLink, setIsEditingLink] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
+  const [dismissedSelection, setDismissedSelection] = useState<string | null>(null);
   const currentAlign = ['left', 'center', 'right', 'justify'].find((a) => editor.isActive({ textAlign: a }));
+
+  useEffect(() => {
+    const selectionKey = () => `${editor.state.selection.from}:${editor.state.selection.to}`;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !editor.state.selection.empty) setDismissedSelection(selectionKey());
+    };
+    const handleSelectionUpdate = () => {
+      const next = selectionKey();
+      setDismissedSelection((current) => (current && current !== next ? null : current));
+    };
+    document.addEventListener('keydown', handleEscape);
+    editor.on('selectionUpdate', handleSelectionUpdate);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      editor.off('selectionUpdate', handleSelectionUpdate);
+    };
+  }, [editor]);
 
   return (
     <TiptapBubbleMenu
       editor={editor}
       options={{ placement: 'top' }}
+      shouldShow={({ editor: currentEditor, state, from, to }) =>
+        currentEditor.isEditable &&
+        currentEditor.isFocused &&
+        !state.selection.empty &&
+        from !== to &&
+        dismissedSelection !== `${from}:${to}` &&
+        !currentEditor.isActive('imageNode')
+      }
+      role="toolbar"
+      aria-label="Text formatting"
+      tabIndex={-1}
       className="flex items-center gap-1 rounded-md border border-border bg-popover p-1 shadow-md"
     >
       <ToggleGroup multiple defaultValue={[]}>

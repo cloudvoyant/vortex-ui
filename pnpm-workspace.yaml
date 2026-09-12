@@ -21,6 +21,7 @@ catalog:
   '@tiptap/extension-placeholder': ^3.31.3
   '@tiptap/extension-task-item': ^3.31.3
   '@tiptap/extension-task-list': ^3.31.3
+  '@tiptap/extension-table': ^3.31.3
   '@tiptap/extension-text-align': ^3.31.3
   '@tiptap/extension-text-style': ^3.31.3
   '@tiptap/extension-typography': ^3.31.3

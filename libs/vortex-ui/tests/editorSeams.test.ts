@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Editor } from '@tiptap/core';
+import { Editor, getSchema } from '@tiptap/core';
 import {
   buildExtensions,
   createInternalMention,
@@ -26,10 +26,25 @@ describe('editor extension layer', () => {
     expect(extensions.length).toBeGreaterThan(10);
   });
 
-  it('wires the title-heading and exit-heading extensions', () => {
-    const names = buildExtensions({ nodeViews }).map((extension) => extension.name);
-    expect(names).toContain('titleHeading');
-    expect(names).toContain('exitHeading');
+  it('wires title enforcement and the complete rich-block schema', () => {
+    const extensions = buildExtensions({ nodeViews });
+    const extensionNames = extensions.map((extension) => extension.name);
+    expect(extensionNames).toEqual(
+      expect.arrayContaining(['titleHeading', 'exitHeading', 'tableKit', 'notice', 'mermaidDiagram']),
+    );
+
+    const schema = getSchema(extensions);
+    expect(Object.keys(schema.nodes)).toEqual(
+      expect.arrayContaining([
+        'blockquote',
+        'table',
+        'tableRow',
+        'tableHeader',
+        'tableCell',
+        'notice',
+        'mermaidDiagram',
+      ]),
+    );
   });
 
   // NOTE: H1 *enforcement* is not asserted here. titleHeading works via ProseMirror's
@@ -40,12 +55,27 @@ describe('editor extension layer', () => {
   it('maps slash Heading 1–4 to h2–h5 and omits unsupported post linking', () => {
     const suggestion = (
       slashCommands.options as unknown as {
-        suggestion: { items: (args: { query: string }) => Array<{ title: string; command: Function }> };
+        suggestion: {
+          items: (args: { query: string }) => Array<{
+            title: string;
+            command: (args: { editor: unknown; range: { from: number; to: number } }) => void;
+          }>;
+        };
       }
     ).suggestion;
     const commands = suggestion.items({ query: '' });
     expect(commands.map((command) => command.title)).toEqual(
-      expect.arrayContaining(['Heading 1', 'Heading 2', 'Heading 3', 'Heading 4']),
+      expect.arrayContaining([
+        'Heading 1',
+        'Heading 2',
+        'Heading 3',
+        'Heading 4',
+        'Quote',
+        'Notice',
+        'Table',
+        'YouTube',
+        'Mermaid',
+      ]),
     );
     expect(commands.map((command) => command.title)).not.toContain('Link Post/Series');
 
@@ -276,6 +306,14 @@ describe('editor link safety (renderHTML)', () => {
         type: 'embed',
       });
       expect(findTag(rendered, 'iframe')?.[1].src).toBe('https://example.com/embed');
+    });
+
+    it('converts a YouTube watch URL to a privacy-enhanced embed URL', () => {
+      const rendered = render(createLinkPreview(inertNodeView), {
+        url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        type: 'embed',
+      });
+      expect(findTag(rendered, 'iframe')?.[1].src).toBe('https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
     });
 
     it('drops a javascript: href on a bookmark card and renders its body as children', () => {

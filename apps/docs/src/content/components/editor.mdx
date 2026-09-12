@@ -8,17 +8,45 @@ group: rich-text
 import Demo from '../../components/Demo.astro';
 import Examples from '../../components/Examples.astro';
 
-`Editor` is a full rich text writing surface built on [Tiptap](https://tiptap.dev). It emits and accepts Tiptap JSON for autosave and server prepopulation, enforces an H1 title, and exposes slash commands, a selection bubble menu, `@` mentions, `:` emoji, link editing, image blocks, bookmark/embed cards, and syntax-highlighted code. `Reader` renders the same JSON read-only.
+`Editor` is a full rich text writing surface built on [Tiptap](https://tiptap.dev). It emits and accepts Tiptap JSON for autosave and server prepopulation, enforces an H1 title, and exposes slash commands, a selection bubble menu, `@` mentions, `:` emoji, link editing, image blocks, notices, quotes, tables, YouTube embeds, Mermaid diagrams, bookmark cards, and syntax-highlighted code. `Reader` renders the same JSON read-only.
 
 App-specific behaviour is **injected**, never hardcoded — mention search, internal-link hrefs, and image upload are all props, so the component stays app-agnostic.
 
 <Demo component="editor" example="default" />
 
-## Server rendering and hydration
+## Server rendering and client hydration
 
-`Reader` is safe to render on the server: give it the saved Tiptap JSON and it produces the read-only document immediately.
+Use `Reader` for server-rendered content. It converts saved Tiptap JSON to HTML without creating a browser editor instance. This demo is rendered by Astro on the server with no client directive:
 
-`Editor` creates a browser Tiptap view and must mount on the client. Fetch or serialize the same JSON on the server, pass it as `content`, and hydrate the editor after the page loads. In Astro, use a client directive such as `client:load`; in other SSR frameworks, render it from a client component or a no-SSR boundary. Do not create an `Editor` instance during server rendering.
+<Demo component="editor" example="server-reader" />
+
+Use `Editor` only after the page reaches the browser. Fetch or serialize the same JSON on the server, pass it as `content`, and hydrate the writing surface after page load.
+
+### Astro with React
+
+```astro
+---
+import { Reader } from '@cloudvoyant/vortex-react';
+import EditorIsland from './EditorIsland.tsx';
+const content = await loadSavedTiptapJson();
+---
+<Reader content={content} />
+<EditorIsland content={content} client:load />
+```
+
+### Astro or SvelteKit with Svelte
+
+```svelte
+<script lang="ts">
+  import { Editor, Reader } from '@cloudvoyant/vortex-svelte';
+  let { data } = $props(); // `data.content` was loaded on the server.
+</script>
+
+<Reader content={data.content} />
+<Editor content={data.content} />
+```
+
+In SvelteKit, put the editor in a client-only boundary when its parent is server-rendered. Do not construct a Tiptap `Editor` instance in a server load function or module scope.
 
 ## Examples
 
@@ -26,7 +54,7 @@ App-specific behaviour is **injected**, never hardcoded — mention search, inte
 
 ## API Reference
 
-`Editor` — `content` (Tiptap JSON string), `editable` (default `true`), `onChange` / `onchange` (`({ content, title }) => void`), and the three seams: `mentionSource` (`(query) => Promise<MentionItem[]>`), `hrefBuilder` (`(item) => string`), `onUpload` (`(file) => Promise<{ src; srcset? }>`).
+`Editor` — `content` (Tiptap JSON string), `editable` (default `true`), `onChange` / `onchange` (`({ content, title }) => void`), and three optional seams: `mentionSource` (`(query) => Promise<MentionItem[]>`), `hrefBuilder` (`(item) => string`), `onUpload` (`(file) => Promise<{ src; srcset? }>`). Without `onUpload`, the image form inserts a local data URL for demos and offline editing.
 
 Imperative: `focus()`, `updateContent(json)`, `getCounts(): EditorCounts` — React via `ref`, Svelte via bound exports. `EditorCounts` reports `wordCount`, `charCount`, `pageCount` (300 words/page) and `readDuration` (250 words/minute).
 

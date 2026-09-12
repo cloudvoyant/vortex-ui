@@ -5,6 +5,7 @@
   // Intra-package imports stay relative: importing '@cloudvoyant/vortex-svelte' from inside the
   // package is fragile during the svelte-package build.
   import { Popover, PopoverTrigger, PopoverContent } from '../popover';
+  import { CodeBlock, CodeBlockHeader, CodeBlockTitle, CodeBlockCopyButton } from '../code-block';
   import {
     Listbox,
     ListboxInput,
@@ -13,7 +14,7 @@
     ListboxItemText,
     ListboxItemIndicator,
   } from '../listbox';
-  import { cn, defaultListboxFilter } from '@cloudvoyant/vortex-ui';
+  import { cn, codeBlockBodyBase, codeBlockContentBase, defaultListboxFilter } from '@cloudvoyant/vortex-ui';
   import { ChevronsUpDown, Check } from 'lucide-svelte';
 
   let { node, editor, updateAttributes }: NodeViewProps = $props();
@@ -82,58 +83,63 @@
   });
 </script>
 
-<NodeViewWrapper class="code-block-wrapper relative my-4">
-  {#if editable}
-    <div class="language-selector">
-      <Popover
-        {open}
-        onOpenChange={(details) => {
-          open = details.open;
-          if (!details.open) languageQuery = '';
-        }}
-      >
-        <PopoverTrigger
-          class="inline-flex items-center gap-1 rounded-md border border-input bg-transparent px-2 py-1 text-xs shadow-sm hover:bg-accent"
-        >
-          {currentLanguageLabel}
-          <ChevronsUpDown class="h-3 w-3 shrink-0 opacity-50" />
-        </PopoverTrigger>
-        <PopoverContent class="w-[200px] p-0 language-popover">
-          <Listbox
-            items={filteredLanguages}
-            value={[language]}
-            onValueChange={(details) => {
-              const next = details.value[0];
-              if (next) changeLanguage(next);
+<NodeViewWrapper class="my-4">
+  <CodeBlock code={node.textContent} language={language} class="my-0">
+    <CodeBlockHeader>
+      <CodeBlockTitle>{currentLanguageLabel}</CodeBlockTitle>
+      <div class="ml-auto flex items-center gap-2" contenteditable={false}>
+        {#if editable}
+          <Popover
+            {open}
+            onOpenChange={(details) => {
+              open = details.open;
+              if (!details.open) languageQuery = '';
             }}
           >
-            <ListboxInput
-              placeholder="Search language..."
-              value={languageQuery}
-              oninput={(event) => (languageQuery = (event.currentTarget as HTMLInputElement).value)}
-              autoHighlight
-            />
-            <ListboxContent>
-              {#each filteredLanguages as lang}
-                <ListboxItem item={lang}>
-                  <ListboxItemText>{lang.label}</ListboxItemText>
-                  <ListboxItemIndicator class={cn(language !== lang.value && 'text-transparent')}>
-                    <Check class="mr-2 h-4 w-4" />
-                  </ListboxItemIndicator>
-                </ListboxItem>
-              {/each}
-            </ListboxContent>
-          </Listbox>
-        </PopoverContent>
-      </Popover>
+            <PopoverTrigger
+              class="inline-flex items-center gap-1 rounded-md border border-input bg-background px-2 py-1 text-xs shadow-sm hover:bg-accent"
+            >
+              Change language
+              <ChevronsUpDown class="h-3 w-3 shrink-0 opacity-50" />
+            </PopoverTrigger>
+            <PopoverContent class="w-[200px] p-0">
+              <Listbox
+                items={filteredLanguages}
+                value={[language]}
+                onValueChange={(details) => {
+                  const next = details.value[0];
+                  if (next) changeLanguage(next);
+                }}
+              >
+                <ListboxInput
+                  placeholder="Search language..."
+                  value={languageQuery}
+                  oninput={(event) => (languageQuery = (event.currentTarget as HTMLInputElement).value)}
+                  autoHighlight
+                />
+                <ListboxContent>
+                  {#each filteredLanguages as lang}
+                    <ListboxItem item={lang}>
+                      <ListboxItemText>{lang.label}</ListboxItemText>
+                      <ListboxItemIndicator class={cn(language !== lang.value && 'text-transparent')}>
+                        <Check class="mr-2 h-4 w-4" />
+                      </ListboxItemIndicator>
+                    </ListboxItem>
+                  {/each}
+                </ListboxContent>
+              </Listbox>
+            </PopoverContent>
+          </Popover>
+        {/if}
+        <CodeBlockCopyButton />
+      </div>
+    </CodeBlockHeader>
+    <div class={codeBlockBodyBase}>
+      <pre class={cn(codeBlockContentBase, 'm-0 p-4 font-mono [&_code]:bg-transparent [&_code]:p-0')}>
+        <NodeViewContent as="code" />
+      </pre>
     </div>
-  {:else}
-    <span class="code-block-language-label">
-      {currentLanguageLabel}
-    </span>
-  {/if}
-
-  <pre class="code-block-content"><NodeViewContent as="code" /></pre>
+  </CodeBlock>
 </NodeViewWrapper>
 
 <style>

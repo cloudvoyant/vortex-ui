@@ -14,6 +14,8 @@ import {
   buildExtensions,
   registerImageInsertCallback,
   unregisterImageInsertCallback,
+  registerYouTubeInsertCallback,
+  unregisterYouTubeInsertCallback,
   type EditorCounts,
   type MentionItem,
   type ImageUploadResult,
@@ -24,12 +26,15 @@ import { ImageNodeView } from './ImageNodeView';
 import { UrlMentionPill } from './UrlMentionPill';
 import { LinkPreviewCard } from './LinkPreviewCard';
 import { CodeBlockComponent } from './CodeBlockComponent';
+import { NoticeNodeView } from './NoticeNodeView';
+import { MermaidNodeView } from './MermaidNodeView';
 import { BubbleMenu } from './BubbleMenu';
 import { SlashMenu, type SlashMenuHandle } from './SlashMenu';
 import { MentionList, type MentionListHandle } from './MentionList';
 import { EmojiList, type EmojiListHandle } from './EmojiList';
 import { ImageInput } from './ImageInput';
 import { BookmarkInput } from './BookmarkInput';
+import { YouTubeInput } from './YouTubeInput';
 import { PasteMenu } from './PasteMenu';
 
 export interface EditorHandle {
@@ -89,6 +94,10 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
     position: number;
     coords: { left: number; top: number };
   } | null>(null);
+  const [youTubeInput, setYouTubeInput] = useState<{
+    position: number;
+    coords: { left: number; top: number };
+  } | null>(null);
   const [pasteMenu, setPasteMenu] = useState<{
     url: string;
     position: number;
@@ -112,6 +121,8 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
           urlMention: () => ReactNodeViewRenderer(UrlMentionPill),
           linkPreview: () => ReactNodeViewRenderer(LinkPreviewCard),
           codeBlock: () => ReactNodeViewRenderer(CodeBlockComponent),
+          notice: () => ReactNodeViewRenderer(NoticeNodeView),
+          mermaid: () => ReactNodeViewRenderer(MermaidNodeView),
         },
         // State-only renders; the menus are drawn from JSX below.
         mentionRender: () => ({
@@ -170,7 +181,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
     editorProps: {
       attributes: {
         class:
-          'prose prose-lg min-h-[500px] max-w-none focus:outline-none [&_mark]:rounded-sm [&_mark]:bg-yellow-200 [&_mark]:px-0.5 dark:[&_mark]:bg-yellow-900/70 [&_mark[data-color=blue]]:bg-blue-200 dark:[&_mark[data-color=blue]]:bg-blue-900/70 [&_mark[data-color=green]]:bg-green-200 dark:[&_mark[data-color=green]]:bg-green-900/70 [&_mark[data-color=red]]:bg-red-200 dark:[&_mark[data-color=red]]:bg-red-900/70 [&_mark[data-color=fuchsia]]:bg-fuchsia-200 dark:[&_mark[data-color=fuchsia]]:bg-fuchsia-900/70 [&_mark[data-color=orange]]:bg-orange-200 dark:[&_mark[data-color=orange]]:bg-orange-900/70 [&_mark[data-color=violet]]:bg-violet-200 dark:[&_mark[data-color=violet]]:bg-violet-900/70 [&_mark[data-color=cyan]]:bg-cyan-200 dark:[&_mark[data-color=cyan]]:bg-cyan-900/70 [&_mark[data-color=slate]]:bg-slate-200 dark:[&_mark[data-color=slate]]:bg-slate-700',
+          'prose prose-lg min-h-[500px] max-w-none focus:outline-none [&_mark]:rounded-sm [&_mark]:bg-yellow-200 [&_mark]:px-0.5 dark:[&_mark]:bg-yellow-900/70',
       },
       // Pasting a bare URL opens the paste menu so it can become a link, pill, or bookmark.
       handlePaste: (view, event) => {
@@ -200,6 +211,17 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
     },
   });
 
+  // Lock only the editor's nearest scroll viewport while the slash menu is open. The document
+  // remains scrollable elsewhere, and the fixed menu stays anchored during page scroll.
+  useEffect(() => {
+    if (!editor || !slash.props) return;
+    const container = findScrollableAncestor(editor.view.dom);
+    if (!container) return;
+    const preventWheel = (event: WheelEvent) => event.preventDefault();
+    container.addEventListener('wheel', preventWheel, { passive: false });
+    return () => container.removeEventListener('wheel', preventWheel);
+  }, [editor, slash.props]);
+
   // The image slash command signals through this editor's own Tiptap storage (storage mutations
   // are not tracked by React state), so register it while mounted. Keyed per editor, so two
   // editors on one page no longer clobber each other's image command.
@@ -208,12 +230,28 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
     const instance = editor;
     registerImageInsertCallback(instance, (position) => {
       const coords = instance.view.coordsAtPos(position);
-      const menuHeight = 300;
+      const panelHeight = 480;
+      const viewportGap = 16;
       const spaceBelow = window.innerHeight - coords.bottom;
-      const top = spaceBelow < menuHeight && coords.top > spaceBelow ? coords.top - menuHeight - 8 : coords.bottom + 8;
+      const preferredTop =
+        spaceBelow < panelHeight && coords.top > spaceBelow ? coords.top - panelHeight - 8 : coords.bottom + 8;
+      const top = Math.min(
+        Math.max(preferredTop, viewportGap),
+        Math.max(window.innerHeight - panelHeight - viewportGap, viewportGap),
+      );
       setImageInput({ position, coords: { left: coords.left, top } });
     });
     return () => unregisterImageInsertCallback(instance);
+  }, [editor]);
+
+  useEffect(() => {
+    if (!editor) return;
+    const instance = editor;
+    registerYouTubeInsertCallback(instance, (position) => {
+      const coords = instance.view.coordsAtPos(position);
+      setYouTubeInput({ position, coords: { left: coords.left, top: coords.bottom + 8 } });
+    });
+    return () => unregisterYouTubeInsertCallback(instance);
   }, [editor]);
 
   // The bookmark slash command writes a flag into editor.storage; poll it into React state.
@@ -307,6 +345,12 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
         </div>
       ) : null}
 
+      {editor && youTubeInput ? (
+        <div className="fixed z-50" style={{ left: youTubeInput.coords.left, top: youTubeInput.coords.top }}>
+          <YouTubeInput editor={editor} position={youTubeInput.position} onClose={() => setYouTubeInput(null)} />
+        </div>
+      ) : null}
+
       {editor && pasteMenu ? (
         <div className="fixed z-50" style={{ left: pasteMenu.coords.left, top: pasteMenu.coords.top }}>
           <PasteMenu editor={editor} url={pasteMenu.url} position={pasteMenu.position} onClose={closeMenus} />
@@ -315,6 +359,16 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
     </div>
   );
 });
+
+function findScrollableAncestor(element: HTMLElement): HTMLElement | null {
+  let current = element.parentElement;
+  while (current && current !== document.body) {
+    const overflowY = window.getComputedStyle(current).overflowY;
+    if (/(auto|scroll)/.test(overflowY) && current.scrollHeight > current.clientHeight) return current;
+    current = current.parentElement;
+  }
+  return null;
+}
 
 /** Build menu state with a flip-above-when-cramped position from the suggestion's rect. */
 function menuFrom<T>(props: SuggestionProps<T>): MenuState<T> {

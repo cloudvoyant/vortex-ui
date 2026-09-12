@@ -275,46 +275,10 @@
     color: var(--text-slate);
   }
 
-  /* Highlight colors - theme-aware */
+  /* Tiptap writes selected highlight colors inline. This non-important default is only the
+     fallback for highlights without an explicit color. */
   :global(.reader-content mark) {
-    background-color: var(--highlight-yellow) !important;
-    color: inherit !important;
-  }
-
-  :global(.reader-content mark[data-color='yellow']) {
-    background-color: var(--highlight-yellow) !important;
-    color: inherit !important;
-  }
-  :global(.reader-content mark[data-color='blue']) {
-    background-color: var(--highlight-blue) !important;
-    color: inherit !important;
-  }
-  :global(.reader-content mark[data-color='green']) {
-    background-color: var(--highlight-green) !important;
-    color: inherit !important;
-  }
-  :global(.reader-content mark[data-color='red']) {
-    background-color: var(--highlight-red) !important;
-    color: inherit !important;
-  }
-  :global(.reader-content mark[data-color='fuchsia']) {
-    background-color: var(--highlight-fuchsia) !important;
-    color: inherit !important;
-  }
-  :global(.reader-content mark[data-color='orange']) {
-    background-color: var(--highlight-orange) !important;
-    color: inherit !important;
-  }
-  :global(.reader-content mark[data-color='violet']) {
-    background-color: var(--highlight-violet) !important;
-    color: inherit !important;
-  }
-  :global(.reader-content mark[data-color='cyan']) {
-    background-color: var(--highlight-cyan) !important;
-    color: inherit !important;
-  }
-  :global(.reader-content mark[data-color='slate']) {
-    background-color: var(--highlight-slate) !important;
+    background-color: var(--highlight-yellow);
     color: inherit !important;
   }
 </style>

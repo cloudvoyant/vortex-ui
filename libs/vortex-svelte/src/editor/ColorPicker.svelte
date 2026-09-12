@@ -38,9 +38,10 @@
 
   function selectColor(colorId: string) {
     if (mode === 'highlight') {
-      // Highlight stores the palette id in `data-color`, and the theme CSS maps it — the bare
-      // id is correct here.
-      editor.chain().focus().toggleHighlight({ color: colorId }).run();
+      // Highlight serializes this as an inline `background-color`, so use the actual preview
+      // color rather than a bare CSS keyword such as `yellow`.
+      const entry = highlightColors.find((color) => color.id === colorId);
+      editor.chain().focus().toggleHighlight({ color: entry?.preview ?? colorId }).run();
     } else {
       // @tiptap/extension-color writes an inline `style`, so it needs a real CSS colour.
       // Passing the palette id ('slate') produces invalid CSS and silently does nothing.

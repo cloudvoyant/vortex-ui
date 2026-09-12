@@ -25,6 +25,7 @@
   let isVisible = $state(false);
   let currentTextColor = $state<string | null>(null);
   let currentHighlight = $state<string | null>(null);
+  let dismissedSelection = $state<string | null>(null);
 
   // Reset picker states when menu closes
   $effect(() => {
@@ -34,31 +35,6 @@
       showLinkInput = false;
     }
   });
-
-  // Color preview mapping - darker versions of highlights
-  const colorPreviews: Record<string, string> = {
-    yellow: '#f59e0b',
-    blue: '#3b82f6',
-    green: '#10b981',
-    red: '#ef4444',
-    fuchsia: '#d946ef',
-    orange: '#f97316',
-    violet: '#8b5cf6',
-    cyan: '#06b6d4',
-    slate: '#64748b',
-  };
-
-  const highlightPreviews: Record<string, string> = {
-    yellow: '#fef9c3',
-    blue: '#dbeafe',
-    green: '#d1fae5',
-    red: '#fee2e2',
-    fuchsia: '#fae8ff',
-    orange: '#ffedd5',
-    violet: '#ede9fe',
-    cyan: '#cffafe',
-    slate: '#f1f5f9',
-  };
 
   function updateColors() {
     if (!props.editor) return;
@@ -70,9 +46,23 @@
     if (!props.editor) return;
 
     const { from, to, empty } = props.editor.state.selection;
+    const selectionKey = `${from}:${to}`;
 
-    // Hide if no selection
-    if (empty || from === to) {
+    if (dismissedSelection === selectionKey) {
+      isVisible = false;
+      return;
+    }
+    if (dismissedSelection && dismissedSelection !== selectionKey) dismissedSelection = null;
+
+    // Image node selections use their own controls; the text bubble menu must stay hidden.
+    if (props.editor.isActive('imageNode')) {
+      isVisible = false;
+      showLinkInput = false;
+      return;
+    }
+
+    // Hide if the editor is blurred or there is no text selection.
+    if (!props.editor.isFocused || empty || from === to) {
       isVisible = false;
       showLinkInput = false;
       return;
@@ -151,9 +141,24 @@
     props.editor.on('selectionUpdate', updatePosition);
     props.editor.on('transaction', updatePosition);
 
-    // Update on scroll
+    // Update on scroll, dismiss outside both interactive surfaces, and keep Escape dismissal
+    // tied to the current selection. A raw editor blur cannot be used here because toolbar
+    // pointerdown blurs ProseMirror before the button click runs.
     const handleScroll = () => requestAnimationFrame(updatePosition);
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!(event.target instanceof Node)) return;
+      if (menu.contains(event.target) || props.editor.view.dom.contains(event.target)) return;
+      isVisible = false;
+      showLinkInput = false;
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || props.editor.state.selection.empty) return;
+      dismissedSelection = `${props.editor.state.selection.from}:${props.editor.state.selection.to}`;
+      isVisible = false;
+    };
     window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('pointerdown', handlePointerDown, true);
+    window.addEventListener('keydown', handleEscape, true);
 
     // Initial update
     requestAnimationFrame(updatePosition);
@@ -162,6 +167,8 @@
       props.editor.off('selectionUpdate', updatePosition);
       props.editor.off('transaction', updatePosition);
       window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('pointerdown', handlePointerDown, true);
+      window.removeEventListener('keydown', handleEscape, true);
     };
   });
 
@@ -200,6 +207,10 @@
 
 <div
   bind:this={menu}
+  onmousedown={(event) => event.preventDefault()}
+  role="toolbar"
+  aria-label="Text formatting"
+  tabindex="-1"
   class="fixed z-50 flex items-center gap-1 rounded-lg border bg-popover text-popover-foreground p-1 shadow-lg transition-opacity"
   style="opacity: {isVisible ? 1 : 0}; pointer-events: {isVisible ? 'auto' : 'none'}"
 >
@@ -256,19 +267,20 @@
   <div class="relative">
     <button
       type="button"
-      class="rounded px-3 py-1 hover:bg-accent hover:text-accent-foreground {props.editor.isActive('highlight')
+      class="rounded px-3 py-1 hover:bg-accent hover:text-accent-foreground {currentHighlight
         ? 'bg-accent text-accent-foreground'
         : ''}"
       onclick={() => (showHighlightPicker = !showHighlightPicker)}
+      data-state={currentHighlight ? 'on' : 'off'}
       aria-label="Highlight"
       title="Highlight"
     >
       <span class="relative inline-block">
         H
-        {#if currentHighlight && highlightPreviews[currentHighlight]}
+        {#if currentHighlight}
           <span
             class="absolute -bottom-0.5 left-0 right-0 h-0.5 rounded-full"
-            style="background-color: {highlightPreviews[currentHighlight]}"
+            style="background-color: {currentHighlight}"
           ></span>
         {/if}
       </span>
@@ -287,10 +299,10 @@
     >
       <span class="relative inline-block">
         A
-        {#if currentTextColor && colorPreviews[currentTextColor]}
+        {#if currentTextColor}
           <span
             class="absolute -bottom-0.5 left-0 right-0 h-0.5 rounded-full"
-            style="background-color: {colorPreviews[currentTextColor]}"
+            style="background-color: {currentTextColor}"
           ></span>
         {/if}
       </span>

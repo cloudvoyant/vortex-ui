@@ -5,6 +5,17 @@ import { useEffect, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import type { ImageUploadResult } from '@cloudvoyant/vortex-ui';
 import { X } from 'lucide-react';
+import { ImageFileUpload } from './ImageFileUpload';
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () =>
+      typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('No image data'));
+    reader.onerror = () => reject(reader.error ?? new Error('Could not read image'));
+    reader.readAsDataURL(file);
+  });
+}
 
 export interface ImageInputProps {
   editor: Editor;
@@ -15,10 +26,10 @@ export interface ImageInputProps {
 }
 
 export function ImageInput({ editor, position, onClose, onUpload }: ImageInputProps) {
-  // A consumer that supplies no upload handler must not be shown a disabled upload control.
-  const [tab, setTab] = useState<'upload' | 'url'>(onUpload ? 'upload' : 'url');
+  const [tab, setTab] = useState<'upload' | 'url'>('upload');
   const [urlValue, setUrlValue] = useState('');
   const [urlError, setUrlError] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const urlInputRef = useRef<HTMLInputElement>(null);
@@ -32,13 +43,14 @@ export function ImageInput({ editor, position, onClose, onUpload }: ImageInputPr
     onClose();
   }
 
-  async function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file || !onUpload) return;
+  async function handleUpload() {
+    if (!selectedFile) return setUploadError('Choose an image first.');
     setUploading(true);
     setUploadError('');
     try {
-      const result = await onUpload(file);
+      const result: ImageUploadResult = onUpload
+        ? await onUpload(selectedFile)
+        : { src: await fileToDataUrl(selectedFile) };
       insertImage(result.src, result.srcset);
     } catch {
       setUploadError('Upload failed. Please try again.');
@@ -66,7 +78,7 @@ export function ImageInput({ editor, position, onClose, onUpload }: ImageInputPr
       onKeyDown={(event) => {
         if (event.key === 'Escape') onClose();
       }}
-      className="w-80 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-xl"
+      className="max-h-[calc(100vh-2rem)] w-80 overflow-y-auto rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-xl"
     >
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -82,7 +94,7 @@ export function ImageInput({ editor, position, onClose, onUpload }: ImageInputPr
         </div>
 
         <div className="flex gap-1 rounded-md bg-muted p-1">
-          {(onUpload ? (['upload', 'url'] as const) : (['url'] as const)).map((value) => (
+          {(['upload', 'url'] as const).map((value) => (
             <button
               key={value}
               type="button"
@@ -101,12 +113,13 @@ export function ImageInput({ editor, position, onClose, onUpload }: ImageInputPr
 
         {tab === 'upload' ? (
           <div className="space-y-2">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFile}
-              disabled={!onUpload || uploading}
-              className="w-full text-sm file:mr-2 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1.5 file:text-sm file:text-foreground"
+            <ImageFileUpload
+              file={selectedFile}
+              disabled={uploading}
+              onFileChange={(file) => {
+                setSelectedFile(file);
+                setUploadError('');
+              }}
             />
             {uploading ? <p className="text-xs text-muted-foreground">Uploading…</p> : null}
             {uploadError ? <p className="text-xs text-destructive">{uploadError}</p> : null}
@@ -135,15 +148,14 @@ export function ImageInput({ editor, position, onClose, onUpload }: ImageInputPr
           <button type="button" onClick={onClose} className="rounded-md px-3 py-1.5 text-sm hover:bg-muted">
             Cancel
           </button>
-          {tab === 'url' ? (
-            <button
-              type="button"
-              onClick={handleUrlSubmit}
-              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              Insert
-            </button>
-          ) : null}
+          <button
+            type="button"
+            onClick={tab === 'upload' ? () => void handleUpload() : handleUrlSubmit}
+            disabled={uploading || (tab === 'upload' && !selectedFile)}
+            className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {tab === 'upload' ? (uploading ? 'Uploading…' : 'Upload') : 'Insert'}
+          </button>
         </div>
       </div>
     </div>

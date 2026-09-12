@@ -17,11 +17,14 @@
   import SlashMenu from './SlashMenu.svelte';
   import BookmarkInput from './BookmarkInput.svelte';
   import ImageInput from './ImageInput.svelte';
+  import YouTubeInput from './YouTubeInput.svelte';
   import PasteMenu from './PasteMenu.svelte';
   import ImageNodeView from './ImageNodeView.svelte';
   import UrlMentionPill from './UrlMentionPill.svelte';
   import LinkPreviewCard from './LinkPreviewCard.svelte';
   import CodeBlockComponent from './CodeBlockComponent.svelte';
+  import NoticeNodeView from './NoticeNodeView.svelte';
+  import MermaidNodeView from './MermaidNodeView.svelte';
   import MentionList from './MentionList.svelte';
   import EmojiList from './EmojiList.svelte';
   import type { SuggestionProps } from '@tiptap/suggestion';
@@ -66,10 +69,38 @@
   let imageInputActive = $state(false);
   let imageInputPosition = $state(0);
   let imageInputCoords = $state({ left: 0, top: 0 });
+  let youTubeInputActive = $state(false);
+  let youTubeInputPosition = $state(0);
+  let youTubeInputCoords = $state({ left: 0, top: 0 });
   let pasteMenuActive = $state(false);
   let pasteMenuUrl = $state('');
   let pasteMenuPosition = $state(0);
   let pasteMenuCoords = $state({ left: 0, top: 0 });
+
+  type SlashCommandInsertStorage = {
+    slashCommands: { onInsertYouTube?: (position: number) => void };
+  };
+
+  function registerYouTubeInsert(editorInstance: Editor, callback: (position: number) => void) {
+    // SAFETY: the shared slashCommands extension owns this per-editor storage object and
+    // initializes `onInsertYouTube`; Tiptap exposes extension storage as an open bag.
+    (editorInstance.storage as unknown as SlashCommandInsertStorage).slashCommands.onInsertYouTube = callback;
+  }
+
+  function unregisterYouTubeInsert(editorInstance: Editor) {
+    // SAFETY: same extension-owned storage invariant as registerYouTubeInsert.
+    (editorInstance.storage as unknown as SlashCommandInsertStorage).slashCommands.onInsertYouTube = undefined;
+  }
+
+  function findScrollableAncestor(element: HTMLElement): HTMLElement | null {
+    let current = element.parentElement;
+    while (current && current !== document.body) {
+      const overflowY = window.getComputedStyle(current).overflowY;
+      if (/(auto|scroll)/.test(overflowY) && current.scrollHeight > current.clientHeight) return current;
+      current = current.parentElement;
+    }
+    return null;
+  }
 
   function updateSlashMenuPosition() {
     const props = slashMenuProps;
@@ -100,6 +131,19 @@
     };
   });
 
+  // Lock only the editor's nearest scroll viewport while the slash menu is open. Page scrolling
+  // remains available outside that viewport.
+  $effect(() => {
+    const activeMenu = slashMenuProps;
+    const editorInstance = editor;
+    if (!activeMenu || !editorInstance) return;
+    const container = findScrollableAncestor(editorInstance.view.dom);
+    if (!container) return;
+    const preventWheel = (event: WheelEvent) => event.preventDefault();
+    container.addEventListener('wheel', preventWheel, { passive: false });
+    return () => container.removeEventListener('wheel', preventWheel);
+  });
+
   // Extract title from content (first H1)
   function extractTitle(json: JSONContent): string {
     if (json && json.content && json.content[0]?.type === 'heading' && json.content[0]?.attrs?.level === 1) {
@@ -115,18 +159,22 @@
       editor = null;
     }
 
+    const nodeViews = {
+      image: () => SvelteNodeViewRenderer(ImageNodeView),
+      urlMention: () => SvelteNodeViewRenderer(UrlMentionPill),
+      linkPreview: () => SvelteNodeViewRenderer(LinkPreviewCard),
+      codeBlock: () => SvelteNodeViewRenderer(CodeBlockComponent),
+      notice: () => SvelteNodeViewRenderer(NoticeNodeView),
+      mermaid: () => SvelteNodeViewRenderer(MermaidNodeView),
+    };
+
     editor = new Editor({
       element,
       ...({ immediatelyRender: false } as unknown as Partial<EditorOptions>),
       extensions: buildExtensions({
         mentionSource,
         hrefBuilder,
-        nodeViews: {
-          image: () => SvelteNodeViewRenderer(ImageNodeView),
-          urlMention: () => SvelteNodeViewRenderer(UrlMentionPill),
-          linkPreview: () => SvelteNodeViewRenderer(LinkPreviewCard),
-          codeBlock: () => SvelteNodeViewRenderer(CodeBlockComponent),
-        },
+        nodeViews,
         mentionRender: () => ({
           onStart: (props: SuggestionProps<MentionItem>) => {
             mentionMenuProps = props;
@@ -263,13 +311,26 @@
     // (editor.storage mutations are not tracked by Svelte 5 $effect)
     registerImageInsertCallback(editor!, (position) => {
       const coords = editor!.view.coordsAtPos(position);
-      const menuHeight = 300;
+      const panelHeight = 480;
+      const viewportGap = 16;
       const spaceBelow = window.innerHeight - coords.bottom;
       const spaceAbove = coords.top;
-      const top = spaceBelow < menuHeight && spaceAbove > spaceBelow ? coords.top - menuHeight - 8 : coords.bottom + 8;
+      const preferredTop =
+        spaceBelow < panelHeight && spaceAbove > spaceBelow ? coords.top - panelHeight - 8 : coords.bottom + 8;
+      const top = Math.min(
+        Math.max(preferredTop, viewportGap),
+        Math.max(window.innerHeight - panelHeight - viewportGap, viewportGap),
+      );
       imageInputCoords = { left: coords.left, top };
       imageInputPosition = position;
       imageInputActive = true;
+    });
+
+    registerYouTubeInsert(editor!, (position: number) => {
+      const coords = editor!.view.coordsAtPos(position);
+      youTubeInputCoords = { left: coords.left, top: coords.bottom + 8 };
+      youTubeInputPosition = position;
+      youTubeInputActive = true;
     });
   });
 
@@ -309,6 +370,7 @@
   onDestroy(() => {
     if (editor) {
       unregisterImageInsertCallback(editor);
+      unregisterYouTubeInsert(editor);
       editor.destroy();
     }
   });
@@ -412,6 +474,17 @@
         />
       </div>
     {/if}
+    {#if youTubeInputActive}
+      <div class="fixed z-50" style="left: {youTubeInputCoords.left}px; top: {youTubeInputCoords.top}px;">
+        <YouTubeInput
+          {editor}
+          position={youTubeInputPosition}
+          onClose={() => {
+            youTubeInputActive = false;
+          }}
+        />
+      </div>
+    {/if}
     {#if pasteMenuActive}
       <div class="fixed z-50" style="left: {pasteMenuCoords.left}px; top: {pasteMenuCoords.top}px;">
         <PasteMenu
@@ -478,47 +551,10 @@
     color: var(--text-slate);
   }
 
-  /* Default highlight (no color specified) */
+  /* Tiptap writes selected highlight colors inline. Keep only a non-important default so the
+     chosen color remains authoritative. */
   :global(.ProseMirror mark) {
-    background-color: var(--highlight-yellow) !important;
-    color: inherit !important;
-  }
-
-  /* Highlight colors - theme-aware */
-  :global(.ProseMirror mark[data-color='yellow']) {
-    background-color: var(--highlight-yellow) !important;
-    color: inherit !important;
-  }
-  :global(.ProseMirror mark[data-color='blue']) {
-    background-color: var(--highlight-blue) !important;
-    color: inherit !important;
-  }
-  :global(.ProseMirror mark[data-color='green']) {
-    background-color: var(--highlight-green) !important;
-    color: inherit !important;
-  }
-  :global(.ProseMirror mark[data-color='red']) {
-    background-color: var(--highlight-red) !important;
-    color: inherit !important;
-  }
-  :global(.ProseMirror mark[data-color='fuchsia']) {
-    background-color: var(--highlight-fuchsia) !important;
-    color: inherit !important;
-  }
-  :global(.ProseMirror mark[data-color='orange']) {
-    background-color: var(--highlight-orange) !important;
-    color: inherit !important;
-  }
-  :global(.ProseMirror mark[data-color='violet']) {
-    background-color: var(--highlight-violet) !important;
-    color: inherit !important;
-  }
-  :global(.ProseMirror mark[data-color='cyan']) {
-    background-color: var(--highlight-cyan) !important;
-    color: inherit !important;
-  }
-  :global(.ProseMirror mark[data-color='slate']) {
-    background-color: var(--highlight-slate) !important;
+    background-color: var(--highlight-yellow);
     color: inherit !important;
   }
 

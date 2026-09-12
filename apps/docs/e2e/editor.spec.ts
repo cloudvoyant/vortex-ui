@@ -37,7 +37,7 @@ for (const framework of FRAMEWORKS) {
       await expect(h1).toHaveText(/Getting Started/);
     });
 
-    test('enforces the H1 title on select-all delete', async ({ page }) => {
+    test('enforces the H1 title and shows its placeholder', async ({ page }) => {
       const editor = surface(page, framework, 'heading-enforcement');
       await editor.click();
       await page.keyboard.press('ControlOrMeta+a');
@@ -47,6 +47,7 @@ for (const framework of FRAMEWORKS) {
         const firstTag = await editor.evaluate((el) => el.firstElementChild?.tagName ?? '');
         expect(firstTag).toBe('H1');
       }).toPass();
+      await expect(editor.locator('h1').first()).toHaveAttribute('data-placeholder', 'Untitled');
     });
 
     test('persists typed body text', async ({ page }) => {
@@ -80,20 +81,100 @@ for (const framework of FRAMEWORKS) {
       // toBeVisible() ignores — so an opacity assertion is the only one that proves the menu
       // actually opened. Assert the toolbar is both present AND opaque.
       const toolbar = island(page, framework, 'bubble-menu').getByLabel(/bold/i).first();
+      const toolbarSurface = island(page, framework, 'bubble-menu')
+        .getByRole('toolbar', { name: 'Text formatting' })
+        .first();
       await expect(toolbar).toBeVisible();
-      await expect(toolbar).toHaveCSS('opacity', '1');
+      await expect(toolbarSurface).toHaveCSS('opacity', '1');
 
       // Stronger still: the toolbar must actually apply a mark.
       await toolbar.click();
       await expect(editor.locator('strong')).toHaveCount(1);
+
+      await page.keyboard.press('Escape');
+      if (framework === 'svelte') await expect(toolbarSurface).toHaveCSS('opacity', '0');
+      else await expect(toolbarSurface).not.toBeVisible();
+
+      await editor.click();
+      if (framework === 'svelte') await expect(toolbarSurface).toHaveCSS('opacity', '0');
+      else await expect(toolbarSurface).not.toBeVisible();
     });
 
-    test('the slash menu opens on "/" and shows commands', async ({ page }) => {
+    test('the slash menu opens with rich-block commands and locks its demo scroll', async ({ page }) => {
       const editor = surface(page, framework, 'slash-menu');
+      const demoScroll = page.locator('[data-example-id="slash-menu"] [data-editor-demo-scroll]').first();
+      await editor.locator('p').last().scrollIntoViewIfNeeded();
       await editor.locator('p').last().click();
+      await page.keyboard.press('End');
       await page.keyboard.type('/');
-      // A known command title proves the palette rendered with its items.
-      await expect(island(page, framework, 'slash-menu').getByText('Heading 1').first()).toBeVisible();
+
+      const menu = island(page, framework, 'slash-menu');
+      for (const title of ['Heading 1', 'Quote', 'Notice', 'Table', 'YouTube', 'Mermaid']) {
+        await expect(menu.getByText(title, { exact: true }).first()).toBeVisible();
+      }
+
+      const before = await demoScroll.evaluate((element) => element.scrollTop);
+      await demoScroll.hover();
+      await page.mouse.wheel(0, -200);
+      await expect.poll(() => demoScroll.evaluate((element) => element.scrollTop)).toBe(before);
+    });
+
+    test('applies an actual highlight color and marks the control active', async ({ page }) => {
+      const editor = surface(page, framework, 'bubble-menu');
+      const para = editor.locator('p').first();
+      await para.click();
+      await para.evaluate((element) => {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      });
+
+      const highlight = island(page, framework, 'bubble-menu')
+        .getByLabel(/highlight/i)
+        .first();
+      await highlight.click();
+      // React portals Ark Popover content to document.body; Svelte renders its picker in place.
+      // getByRole excludes the hidden framework, so the visible swatch is unambiguous.
+      await page
+        .getByRole('button', { name: /^blue$/i })
+        .first()
+        .click();
+      await expect(editor.locator('mark').first()).toHaveCSS('background-color', 'rgb(219, 234, 254)');
+      await expect(highlight).toHaveAttribute('data-state', 'on');
+    });
+
+    test('uploads, previews, inserts, and exits an image caption', async ({ page }) => {
+      const editor = surface(page, framework, 'slash-menu');
+      await editor.locator('p').last().scrollIntoViewIfNeeded();
+      await editor.locator('p').last().click();
+      await page.keyboard.press('End');
+      await page.keyboard.type('/');
+      await island(page, framework, 'slash-menu').getByText('Image', { exact: true }).first().click();
+
+      const upload = island(page, framework, 'slash-menu');
+      await upload.locator('input[type="file"]').setInputFiles({
+        name: 'tiny.png',
+        mimeType: 'image/png',
+        buffer: Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+          'base64',
+        ),
+      });
+      await expect(upload.getByRole('img', { name: 'tiny.png' })).toBeVisible();
+      await upload
+        .getByRole('button', { name: /^upload$/i })
+        .last()
+        .click();
+
+      const caption = editor.locator('.caption-input').last();
+      await expect(caption).toBeVisible();
+      const paragraphCount = await editor.locator('p').count();
+      await caption.fill('A tiny image');
+      await caption.press('Enter');
+      await expect(editor.locator('p')).toHaveCount(paragraphCount + 1);
+      await expect(caption).toHaveValue('A tiny image');
     });
 
     test('the mention menu opens on "@" using the injected mentionSource', async ({ page }) => {

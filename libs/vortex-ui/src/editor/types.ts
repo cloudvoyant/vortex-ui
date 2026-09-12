@@ -81,6 +81,8 @@ export interface EditorNodeViews {
   urlMention: NodeViewFactory;
   linkPreview: NodeViewFactory;
   codeBlock: NodeViewFactory;
+  notice?: NodeViewFactory;
+  mermaid?: NodeViewFactory;
 }
 
 /**

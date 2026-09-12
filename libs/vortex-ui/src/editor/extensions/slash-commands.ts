@@ -7,17 +7,18 @@ import { PluginKey } from '@tiptap/pm/state';
 import Suggestion from '@tiptap/suggestion';
 import type { SlashCommandItem } from '../types';
 
-type ImageInsertCallback = (position: number) => void;
+type InsertCallback = (position: number) => void;
 
 interface SlashCommandsStorage {
-  onInsertImage?: ImageInsertCallback;
+  onInsertImage?: InsertCallback;
+  onInsertYouTube?: InsertCallback;
 }
 
 // The image command must set the framework editor's reactive state across the Tiptap boundary
 // (Tiptap storage mutations are not tracked by Svelte 5 runes or React state). The callback
 // lives in this extension's per-editor storage rather than a module-level slot, so two editors
 // on one page keep separate callbacks instead of clobbering each other.
-export function registerImageInsertCallback(editor: import('@tiptap/core').Editor, cb: ImageInsertCallback): void {
+export function registerImageInsertCallback(editor: import('@tiptap/core').Editor, cb: InsertCallback): void {
   // SAFETY: Tiptap storage is an open, untyped per-extension bag; `addStorage` below owns the
   // `slashCommands` key.
   (editor.storage as unknown as { slashCommands: SlashCommandsStorage }).slashCommands.onInsertImage = cb;
@@ -26,6 +27,17 @@ export function registerImageInsertCallback(editor: import('@tiptap/core').Edito
 export function unregisterImageInsertCallback(editor: import('@tiptap/core').Editor): void {
   // SAFETY: same per-extension storage bag as registerImageInsertCallback.
   (editor.storage as unknown as { slashCommands: SlashCommandsStorage }).slashCommands.onInsertImage = undefined;
+}
+
+export function registerYouTubeInsertCallback(editor: import('@tiptap/core').Editor, cb: InsertCallback): void {
+  // SAFETY: Tiptap storage is an open bag; `addStorage` below owns `slashCommands` and its
+  // `onInsertYouTube` callback for this editor instance.
+  (editor.storage as unknown as { slashCommands: SlashCommandsStorage }).slashCommands.onInsertYouTube = cb;
+}
+
+export function unregisterYouTubeInsertCallback(editor: import('@tiptap/core').Editor): void {
+  // SAFETY: same per-editor storage invariant as registerYouTubeInsertCallback.
+  (editor.storage as unknown as { slashCommands: SlashCommandsStorage }).slashCommands.onInsertYouTube = undefined;
 }
 
 export const slashCommands = Extension.create({
@@ -100,6 +112,15 @@ export const slashCommands = Extension.create({
               },
             },
             {
+              title: 'Notice',
+              description: 'Insert a styled callout',
+              icon: 'MessageSquareWarning',
+              category: 'basic',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertNotice({ variant: 'info', title: 'Note' }).run();
+              },
+            },
+            {
               title: 'Bullet List',
               description: 'Create a bulleted list',
               icon: 'List',
@@ -150,6 +171,38 @@ export const slashCommands = Extension.create({
               },
             },
             {
+              title: 'Table',
+              description: 'Insert a three-by-three table',
+              icon: 'Table2',
+              category: 'advanced',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+              },
+            },
+            {
+              title: 'Mermaid',
+              description: 'Insert an editable Mermaid diagram',
+              icon: 'Workflow',
+              category: 'advanced',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).insertMermaid().run();
+              },
+            },
+            {
+              title: 'YouTube',
+              description: 'Embed a YouTube video',
+              icon: 'Youtube',
+              category: 'media',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).run();
+                // SAFETY: `addStorage` owns this per-editor callback; the framework editor
+                // registers and clears it for its own lifecycle.
+                (editor.storage as unknown as { slashCommands: SlashCommandsStorage }).slashCommands.onInsertYouTube?.(
+                  range.from,
+                );
+              },
+            },
+            {
               title: 'Image',
               description: 'Upload an image from your computer',
               icon: 'Image',
@@ -189,7 +242,7 @@ export const slashCommands = Extension.create({
   },
 
   addStorage(): SlashCommandsStorage {
-    return { onInsertImage: undefined };
+    return { onInsertImage: undefined, onInsertYouTube: undefined };
   },
 
   addProseMirrorPlugins() {

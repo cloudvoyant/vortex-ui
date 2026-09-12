@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { NodeViewProps } from '@tiptap/core';
   import { NodeViewWrapper } from 'svelte-tiptap';
+  import YouTube from '../YouTube.svelte';
 
   let { node, deleteNode }: NodeViewProps = $props();
 
@@ -47,9 +48,7 @@
       {/if}
     </a>
   {:else if type === 'embed'}
-    <div class="relative pb-[56.25%] h-0 overflow-hidden rounded-lg">
-      <iframe src={url} {title} frameborder="0" allowfullscreen class="absolute top-0 left-0 w-full h-full"></iframe>
-    </div>
+    <YouTube {url} {title} />
   {/if}
 
   <button

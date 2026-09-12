@@ -2,7 +2,7 @@
 // React parity of ColorPicker.svelte: a swatch grid for the text-color and highlight marks.
 // Text colour uses @tiptap/extension-color (setColor/unsetColor); highlight uses the
 // multicolor Highlight extension.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { Palette, Highlighter } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '..';
@@ -41,12 +41,34 @@ export interface ColorPickerProps {
 
 export function ColorPicker({ editor, mode }: ColorPickerProps) {
   const [open, setOpen] = useState(false);
+  // The editor instance is stable, so a transaction must explicitly re-render this control for
+  // `isActive` and the current swatch to follow the selection.
+  const [, setRevision] = useState(0);
   const preview = mode === 'highlight' ? HIGHLIGHT_PREVIEW : TEXT_PREVIEW;
+  const active = editor.isActive(mode === 'highlight' ? 'highlight' : 'textStyle');
+  const currentColor = editor.getAttributes(mode === 'highlight' ? 'highlight' : 'textStyle').color as
+    string | undefined;
+
+  useEffect(() => {
+    const refresh = () => setRevision((revision) => revision + 1);
+    editor.on('transaction', refresh);
+    editor.on('selectionUpdate', refresh);
+    return () => {
+      editor.off('transaction', refresh);
+      editor.off('selectionUpdate', refresh);
+    };
+  }, [editor]);
 
   function selectColor(colorId: string) {
     if (mode === 'highlight') {
-      // Highlight stores the palette id in `data-color`; theme CSS maps it.
-      editor.chain().focus().toggleHighlight({ color: colorId }).run();
+      // Highlight serializes color into an inline `background-color`, which outranks ordinary
+      // utility classes. Supply the actual palette color instead of a CSS keyword such as
+      // `yellow`, so the mark visibly matches its selected swatch.
+      editor
+        .chain()
+        .focus()
+        .toggleHighlight({ color: preview[colorId] ?? colorId })
+        .run();
     } else {
       // @tiptap/extension-color writes an inline `style`, so it needs a real CSS colour —
       // a bare palette id like 'slate' is invalid CSS and silently does nothing.
@@ -74,9 +96,16 @@ export function ColorPicker({ editor, mode }: ColorPickerProps) {
     <Popover open={open} onOpenChange={(details) => setOpen(details.open)}>
       <PopoverTrigger
         aria-label={label}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted"
+        data-state={active ? 'on' : 'off'}
+        className={cn(
+          'inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted data-[state=on]:bg-accent data-[state=on]:text-accent-foreground',
+        )}
       >
-        {mode === 'highlight' ? <Highlighter className="h-4 w-4" /> : <Palette className="h-4 w-4" />}
+        {mode === 'highlight' ? (
+          <Highlighter className="h-4 w-4" style={currentColor ? { color: currentColor } : undefined} />
+        ) : (
+          <Palette className="h-4 w-4" style={currentColor ? { color: currentColor } : undefined} />
+        )}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-2">
         <div className="grid grid-cols-5 gap-1">

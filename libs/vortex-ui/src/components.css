@@ -34,3 +34,63 @@
   border: 1px solid var(--color-border);
   clip-path: polygon(0 0, 100% 0, 0 100%);
 }
+
+/* Tiptap placeholders are attributes until the consuming surface renders the pseudo-element. */
+.ProseMirror [data-placeholder].is-empty::before {
+  height: 0;
+  float: left;
+  pointer-events: none;
+  color: var(--color-muted-foreground);
+  content: attr(data-placeholder);
+}
+
+/* Tiptap tables share one surface in React, Svelte, and static Reader output. */
+.ProseMirror .tableWrapper,
+.reader-content .tableWrapper {
+  margin-block: 1rem;
+  overflow-x: auto;
+}
+
+.editor-table {
+  width: 100%;
+  margin-block: 1rem;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.editor-table th,
+.editor-table td {
+  position: relative;
+  min-width: 6rem;
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+}
+
+.editor-table th {
+  background: var(--color-muted);
+  font-weight: 600;
+  text-align: start;
+}
+
+.ProseMirror .editor-table .selectedCell::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  background: color-mix(in oklab, var(--color-primary) 12%, transparent);
+}
+
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  bottom: 0;
+  width: 4px;
+  pointer-events: none;
+  background: var(--color-primary);
+}
+
+.ProseMirror.resize-cursor {
+  cursor: col-resize;
+}

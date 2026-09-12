@@ -21,6 +21,7 @@ import { Color } from '@tiptap/extension-color';
 import TextAlign from '@tiptap/extension-text-align';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
+import { TableKit } from '@tiptap/extension-table';
 import CharacterCount from '@tiptap/extension-character-count';
 import Emoji, { emojis } from '@tiptap/extension-emoji';
 import { common, createLowlight } from 'lowlight';
@@ -35,6 +36,8 @@ import { createImageNode } from './extensions/image-node';
 import { createUrlMention } from './extensions/url-mention';
 import { createLinkPreview } from './extensions/link-preview';
 import { createInternalMention } from './extensions/internal-mention';
+import { createNoticeNode } from './extensions/notice-node';
+import { createMermaidNode } from './extensions/mermaid-node';
 import type { BuildExtensionsOptions } from './types';
 
 export function buildExtensions(options: BuildExtensionsOptions): Extensions {
@@ -81,6 +84,14 @@ export function buildExtensions(options: BuildExtensionsOptions): Extensions {
     CharacterCount.configure({ mode: 'textSize' }),
     TaskList,
     TaskItem.configure({ nested: true }),
+    TableKit.configure({
+      table: {
+        resizable: true,
+        HTMLAttributes: { class: 'editor-table' },
+      },
+    }),
+    createNoticeNode(nodeViews.notice),
+    createMermaidNode(nodeViews.mermaid),
     createInternalMention({
       mentionSource,
       hrefBuilder,
