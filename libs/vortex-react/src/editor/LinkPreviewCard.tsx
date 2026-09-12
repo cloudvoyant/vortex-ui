@@ -61,7 +61,7 @@ export function LinkPreviewCard({ node }: NodeViewProps) {
         href={url || ''}
         target="_blank"
         rel="noopener noreferrer"
-        className="bookmark-link flex overflow-hidden no-underline transition-colors"
+        className="bookmark-link flex overflow-hidden rounded-lg border border-border/70 bg-muted/40 no-underline transition-colors hover:bg-muted"
         style={{ color: 'inherit' }}
       >
         <div className="flex min-w-0 flex-1 flex-col justify-between px-3 py-1.5">

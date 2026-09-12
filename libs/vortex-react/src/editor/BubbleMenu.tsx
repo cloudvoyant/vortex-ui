@@ -2,6 +2,7 @@
 // React parity of BubbleMenu.svelte: the selection toolbar. Renders through Tiptap's React
 // BubbleMenu and composes vortex ToggleGroup + ColorPicker with matching mark and alignment
 // actions in each framework.
+import { useState } from 'react';
 import { BubbleMenu as TiptapBubbleMenu } from '@tiptap/react/menus';
 import type { Editor } from '@tiptap/react';
 import {
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '..';
 import { ColorPicker } from './ColorPicker';
+import { LinkEditPopover } from './LinkEditPopover';
 
 export interface BubbleMenuProps {
   editor: Editor;
@@ -24,6 +26,8 @@ export interface BubbleMenuProps {
 }
 
 export function BubbleMenu({ editor }: BubbleMenuProps) {
+  const [isEditingLink, setIsEditingLink] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
   const currentAlign = ['left', 'center', 'right', 'justify'].find((a) => editor.isActive({ textAlign: a }));
 
   return (
@@ -95,25 +99,24 @@ export function BubbleMenu({ editor }: BubbleMenuProps) {
         ))}
       </ToggleGroup>
 
-      <ToggleGroup defaultValue={[]}>
-        <ToggleGroupItem
-          value="link"
-          size="sm"
-          aria-label="Link"
-          onClick={() => {
-            const previous = editor.getAttributes('link').href as string | undefined;
-            const url = window.prompt('Link URL', previous ?? '');
-            if (url === null) return;
-            if (url === '') {
-              editor.chain().focus().unsetLink().run();
-              return;
-            }
-            editor.chain().focus().setLink({ href: url }).run();
-          }}
-        >
-          <Link2 />
-        </ToggleGroupItem>
-      </ToggleGroup>
+      <div className="relative">
+        <ToggleGroup defaultValue={[]}>
+          <ToggleGroupItem
+            value="link"
+            size="sm"
+            aria-label="Link"
+            onClick={() => {
+              setLinkUrl((editor.getAttributes('link').href as string | undefined) ?? '');
+              setIsEditingLink(true);
+            }}
+          >
+            <Link2 />
+          </ToggleGroupItem>
+        </ToggleGroup>
+        {isEditingLink ? (
+          <LinkEditPopover editor={editor} initialUrl={linkUrl} onClose={() => setIsEditingLink(false)} />
+        ) : null}
+      </div>
     </TiptapBubbleMenu>
   );
 }

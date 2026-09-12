@@ -111,7 +111,7 @@
 </script>
 
 <div
-  class="w-96 rounded-lg border border-border bg-popover text-popover-foreground p-4 shadow-xl"
+  class="w-96 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-xl"
   role="dialog"
   aria-label="Create bookmark"
 >

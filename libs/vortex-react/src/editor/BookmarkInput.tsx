@@ -67,10 +67,9 @@ export function BookmarkInput({ editor, position, onClose, fetchMetadata }: Book
       onKeyDown={(event) => {
         if (event.key === 'Escape') onClose();
       }}
-      className="w-80 space-y-3 rounded-lg border border-border bg-popover p-4 text-popover-foreground shadow-xl"
+      className="w-80 space-y-2 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-xl"
     >
       <p className="text-sm font-semibold">Insert Bookmark</p>
-      <hr className="border-border/50" />
       <input
         ref={inputRef}
         type="url"

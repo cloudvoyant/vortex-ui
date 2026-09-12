@@ -2,9 +2,9 @@
   import type { NodeViewProps } from '@tiptap/core';
   import { NodeViewWrapper } from 'svelte-tiptap';
 
-  let { node, deleteNode, updateAttributes }: NodeViewProps = $props();
+  let { node, deleteNode }: NodeViewProps = $props();
 
-  const { url, title, description, image, favicon, provider, type } = $derived(node.attrs);
+  const { url, title, description, image, favicon, type } = $derived(node.attrs);
   let imageError = $state(false);
   let faviconError = $state(false);
 </script>
@@ -15,7 +15,7 @@
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      class="flex transition-colors overflow-hidden bookmark-card-edit"
+      class="flex overflow-hidden rounded-lg border border-border/70 bg-muted/40 transition-colors hover:bg-muted bookmark-card-edit"
       style="text-decoration: none !important; color: inherit;"
     >
       <div class="flex-1 min-w-0 flex flex-col justify-between px-3 py-2.5">
