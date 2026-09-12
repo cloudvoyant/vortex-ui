@@ -33,11 +33,19 @@ export function ImageNodeView({ node, updateAttributes, selected, editor, getPos
           if (position === undefined) return;
           if (event.key === 'ArrowUp') {
             event.preventDefault();
-            editor.chain().focus().setTextSelection(Math.max(position - 1, 0)).run();
+            editor
+              .chain()
+              .focus()
+              .setTextSelection(Math.max(position - 1, 0))
+              .run();
           }
           if (event.key === 'ArrowDown') {
             event.preventDefault();
-            editor.chain().focus().setTextSelection(position + node.nodeSize).run();
+            editor
+              .chain()
+              .focus()
+              .setTextSelection(position + node.nodeSize)
+              .run();
           }
           if (event.key === 'Enter') {
             event.preventDefault();
