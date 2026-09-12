@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Editor } from '@tiptap/core';
   import type { ImageUploadResult } from '@cloudvoyant/vortex-ui';
+  import { X } from 'lucide-svelte';
 
   interface Props {
     editor: Editor;
@@ -12,7 +13,8 @@
 
   let { editor, position, onClose, onUpload }: Props = $props();
 
-  let activeTab = $state<'upload' | 'url'>('upload');
+  // Do not expose a disabled upload path when the consumer only supports URL insertion.
+  let activeTab = $state<'upload' | 'url'>(onUpload ? 'upload' : 'url');
   let urlValue = $state('');
   let urlError = $state('');
   let urlInputEl: HTMLInputElement | undefined = $state();
@@ -73,30 +75,41 @@
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
-  class="w-80 rounded-lg border border-border bg-popover text-popover-foreground p-4 shadow-xl"
+  class="w-80 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-xl"
   role="dialog"
   aria-label="Insert image"
   tabindex="-1"
   onkeydown={handleKeydown}
 >
   <div class="space-y-3">
-    <p class="text-sm font-semibold">Insert Image</p>
-    <hr class="border-border/50" />
+    <div class="flex items-center justify-between">
+      <p class="text-sm font-semibold">Insert Image</p>
+      <button
+        type="button"
+        onclick={onClose}
+        class="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+        aria-label="Close image dialog"
+      >
+        <X size={16} />
+      </button>
+    </div>
 
     <!-- Tabs -->
     <div class="flex gap-1 rounded-md bg-muted p-1">
-      <button
-        type="button"
-        onclick={() => {
-          activeTab = 'upload';
-          urlError = '';
-        }}
-        class="flex-1 rounded px-3 py-1 text-xs font-medium transition-colors {activeTab === 'upload'
-          ? 'bg-background shadow-sm'
-          : 'text-muted-foreground hover:text-foreground'}"
-      >
-        Upload
-      </button>
+      {#if onUpload}
+        <button
+          type="button"
+          onclick={() => {
+            activeTab = 'upload';
+            urlError = '';
+          }}
+          class="flex-1 rounded px-3 py-1 text-xs font-medium transition-colors {activeTab === 'upload'
+            ? 'bg-background shadow-sm'
+            : 'text-muted-foreground hover:text-foreground'}"
+        >
+          Upload
+        </button>
+      {/if}
       <button
         type="button"
         onclick={() => {
@@ -120,9 +133,6 @@
           disabled={!onUpload || uploading}
           class="w-full text-sm file:mr-2 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1.5 file:text-sm file:text-foreground"
         />
-        {#if !onUpload}
-          <p class="text-xs text-muted-foreground">No upload handler was provided — use the URL tab.</p>
-        {/if}
         {#if uploading}
           <p class="text-xs text-muted-foreground">Uploading…</p>
         {/if}
@@ -146,20 +156,22 @@
         {#if urlError}
           <p class="text-xs text-destructive">{urlError}</p>
         {/if}
-        <button
-          type="button"
-          onclick={handleUrlSubmit}
-          class="w-full rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          Insert
-        </button>
       </div>
     {/if}
 
-    <div class="flex justify-end">
-      <button type="button" onclick={onClose} class="px-3 py-1.5 text-sm rounded-md hover:bg-muted transition-colors">
+    <div class="flex justify-end gap-2">
+      <button type="button" onclick={onClose} class="rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-muted">
         Cancel
       </button>
+      {#if activeTab === 'url'}
+        <button
+          type="button"
+          onclick={handleUrlSubmit}
+          class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          Insert
+        </button>
+      {/if}
     </div>
   </div>
 </div>

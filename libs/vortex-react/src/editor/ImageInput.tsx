@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import type { ImageUploadResult } from '@cloudvoyant/vortex-ui';
+import { X } from 'lucide-react';
 
 export interface ImageInputProps {
   editor: Editor;
@@ -14,7 +15,8 @@ export interface ImageInputProps {
 }
 
 export function ImageInput({ editor, position, onClose, onUpload }: ImageInputProps) {
-  const [tab, setTab] = useState<'upload' | 'url'>('upload');
+  // A consumer that supplies no upload handler must not be shown a disabled upload control.
+  const [tab, setTab] = useState<'upload' | 'url'>(onUpload ? 'upload' : 'url');
   const [urlValue, setUrlValue] = useState('');
   const [urlError, setUrlError] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -64,14 +66,23 @@ export function ImageInput({ editor, position, onClose, onUpload }: ImageInputPr
       onKeyDown={(event) => {
         if (event.key === 'Escape') onClose();
       }}
-      className="w-80 rounded-lg border border-border bg-popover p-4 text-popover-foreground shadow-xl"
+      className="w-80 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-xl"
     >
       <div className="space-y-3">
-        <p className="text-sm font-semibold">Insert Image</p>
-        <hr className="border-border/50" />
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold">Insert Image</p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label="Close image dialog"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
 
         <div className="flex gap-1 rounded-md bg-muted p-1">
-          {(['upload', 'url'] as const).map((value) => (
+          {(onUpload ? (['upload', 'url'] as const) : (['url'] as const)).map((value) => (
             <button
               key={value}
               type="button"
@@ -97,9 +108,6 @@ export function ImageInput({ editor, position, onClose, onUpload }: ImageInputPr
               disabled={!onUpload || uploading}
               className="w-full text-sm file:mr-2 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1.5 file:text-sm file:text-foreground"
             />
-            {onUpload ? null : (
-              <p className="text-xs text-muted-foreground">No upload handler was provided — use the URL tab.</p>
-            )}
             {uploading ? <p className="text-xs text-muted-foreground">Uploading…</p> : null}
             {uploadError ? <p className="text-xs text-destructive">{uploadError}</p> : null}
           </div>
@@ -120,20 +128,22 @@ export function ImageInput({ editor, position, onClose, onUpload }: ImageInputPr
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             />
             {urlError ? <p className="text-xs text-destructive">{urlError}</p> : null}
-            <button
-              type="button"
-              onClick={handleUrlSubmit}
-              className="w-full rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              Insert
-            </button>
           </div>
         )}
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className="rounded-md px-3 py-1.5 text-sm hover:bg-muted">
             Cancel
           </button>
+          {tab === 'url' ? (
+            <button
+              type="button"
+              onClick={handleUrlSubmit}
+              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Insert
+            </button>
+          ) : null}
         </div>
       </div>
     </div>

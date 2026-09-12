@@ -4,7 +4,7 @@
 // .image-node-pending-delete decoration added by the two-step backspace plugin.
 import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react';
 
-export function ImageNodeView({ node, updateAttributes, selected }: NodeViewProps) {
+export function ImageNodeView({ node, updateAttributes, selected, editor, getPos }: NodeViewProps) {
   const { src, srcset, alt, caption } = node.attrs as {
     src: string;
     srcset?: string;
@@ -23,10 +23,32 @@ export function ImageNodeView({ node, updateAttributes, selected }: NodeViewProp
         data-selected={selected ? '' : undefined}
       />
       <input
-        className="caption-input mt-4 w-full bg-transparent text-center text-sm italic text-muted-foreground outline-none"
+        className="caption-input mt-2 w-full bg-transparent text-center text-sm italic text-muted-foreground outline-none"
         placeholder="Add a caption…"
         value={caption || ''}
         onChange={(event) => updateAttributes({ caption: event.target.value })}
+        onKeyDown={(event) => {
+          if (typeof getPos !== 'function') return;
+          const position = getPos();
+          if (position === undefined) return;
+          if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            editor.chain().focus().setTextSelection(Math.max(position - 1, 0)).run();
+          }
+          if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            editor.chain().focus().setTextSelection(position + node.nodeSize).run();
+          }
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            editor
+              .chain()
+              .focus()
+              .insertContentAt(position + node.nodeSize, { type: 'paragraph' })
+              .setTextSelection(position + node.nodeSize + 1)
+              .run();
+          }
+        }}
       />
     </NodeViewWrapper>
   );
