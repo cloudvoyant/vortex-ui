@@ -1,0 +1,27 @@
+---
+title: Editor
+description: A Tiptap-based rich text editor and read-only reader with slash commands, a bubble menu, mentions, emoji, link editing, image blocks, and code blocks — for React and Svelte.
+order: 10
+group: rich-text
+---
+
+import Demo from '../../components/Demo.astro';
+import Examples from '../../components/Examples.astro';
+
+`Editor` is a full rich text writing surface built on [Tiptap](https://tiptap.dev). It emits and accepts Tiptap JSON for autosave and server prepopulation, enforces an H1 title, and exposes slash commands, a selection bubble menu, `@` mentions, `:` emoji, link editing, image blocks, bookmark/embed cards, and syntax-highlighted code. `Reader` renders the same JSON read-only.
+
+App-specific behaviour is **injected**, never hardcoded — mention search, internal-link hrefs, and image upload are all props, so the component stays app-agnostic.
+
+<Demo component="editor" example="default" />
+
+## Examples
+
+<Examples component="editor" exclude="default" />
+
+## API Reference
+
+`Editor` — `content` (Tiptap JSON string), `editable` (default `true`), `onChange` / `onchange` (`({ content, title }) => void`), and the three seams: `mentionSource` (`(query) => Promise<MentionItem[]>`), `hrefBuilder` (`(item) => string`), `onUpload` (`(file) => Promise<{ src; srcset? }>`).
+
+Imperative: `focus()`, `updateContent(json)`, `getCounts(): EditorCounts` — React via `ref`, Svelte via bound exports. `EditorCounts` reports `wordCount`, `charCount`, `pageCount` (300 words/page) and `readDuration` (250 words/minute).
+
+`Reader` — `content` (Tiptap JSON string). Renders static HTML from the same schema, with anchor-linkable heading ids.
