@@ -16,6 +16,9 @@ describe('toggleGroupRootVariants', () => {
   it('collapses the gap and merges corners when attached', () => {
     const classes = toggleGroupRootVariants({ attached: true });
     expect(classes).toContain('gap-0');
+    // Regression guard: the base used to carry `gap-1`, so both utilities were applied to the
+    // element and Tailwind's emission order (.gap-1 after .gap-0) defeated the variant.
+    expect(classes).not.toContain('gap-1');
     expect(classes).toContain('[&>*]:rounded-none');
     expect(classes).toContain('[&>*:first-child]:rounded-s-md');
     expect(classes).toContain('[&>*:last-child]:rounded-e-md');

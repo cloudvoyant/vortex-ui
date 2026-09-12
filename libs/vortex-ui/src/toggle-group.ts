@@ -4,10 +4,14 @@
 // toggles match the standalone ToggleButton.
 import { cva, type VariantProps } from 'class-variance-authority';
 
-export const toggleGroupRootVariants = cva('inline-flex items-center gap-1', {
+export const toggleGroupRootVariants = cva('inline-flex items-center', {
   variants: {
     orientation: { horizontal: 'flex-row', vertical: 'flex-col' },
-    attached: { true: 'gap-0 [&>*]:rounded-none', false: '' },
+    // `gap` belongs to the variants, not the base. With a `gap-1` base plus a `gap-0` variant
+    // BOTH utilities land on the element and the winner is decided by Tailwind's emission order,
+    // not by the variant — `.gap-1` is emitted after `.gap-0`, which silently defeated `attached`
+    // and left a 1-unit gap between buttons.
+    attached: { true: 'gap-0 [&>*]:rounded-none', false: 'gap-1' },
   },
   // `attached` radii/overlap must follow the layout axis: rounded-s/e and -ms are inline-axis,
   // which is wrong for a vertical group. Keep them in orientation-scoped compound variants.
