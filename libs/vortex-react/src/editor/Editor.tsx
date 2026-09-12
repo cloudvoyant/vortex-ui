@@ -154,7 +154,10 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
       onChange?.({ content: JSON.stringify(json), title: extractTitle(json) });
     },
     editorProps: {
-      attributes: { class: 'prose prose-lg focus:outline-none max-w-none min-h-[500px]' },
+      attributes: {
+        class:
+          'prose prose-lg min-h-[500px] max-w-none focus:outline-none [&_mark]:rounded-sm [&_mark]:bg-yellow-200 [&_mark]:px-0.5 dark:[&_mark]:bg-yellow-900/70 [&_mark[data-color=blue]]:bg-blue-200 dark:[&_mark[data-color=blue]]:bg-blue-900/70 [&_mark[data-color=green]]:bg-green-200 dark:[&_mark[data-color=green]]:bg-green-900/70 [&_mark[data-color=red]]:bg-red-200 dark:[&_mark[data-color=red]]:bg-red-900/70 [&_mark[data-color=fuchsia]]:bg-fuchsia-200 dark:[&_mark[data-color=fuchsia]]:bg-fuchsia-900/70 [&_mark[data-color=orange]]:bg-orange-200 dark:[&_mark[data-color=orange]]:bg-orange-900/70 [&_mark[data-color=violet]]:bg-violet-200 dark:[&_mark[data-color=violet]]:bg-violet-900/70 [&_mark[data-color=cyan]]:bg-cyan-200 dark:[&_mark[data-color=cyan]]:bg-cyan-900/70 [&_mark[data-color=slate]]:bg-slate-200 dark:[&_mark[data-color=slate]]:bg-slate-700',
+      },
       // Pasting a bare URL opens the paste menu so it can become a link, pill, or bookmark.
       handlePaste: (view, event) => {
         const text = event.clipboardData?.getData('text/plain') ?? '';

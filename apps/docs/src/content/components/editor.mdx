@@ -14,6 +14,12 @@ App-specific behaviour is **injected**, never hardcoded — mention search, inte
 
 <Demo component="editor" example="default" />
 
+## Server rendering and hydration
+
+`Reader` is safe to render on the server: give it the saved Tiptap JSON and it produces the read-only document immediately.
+
+`Editor` creates a browser Tiptap view and must mount on the client. Fetch or serialize the same JSON on the server, pass it as `content`, and hydrate the editor after the page loads. In Astro, use a client directive such as `client:load`; in other SSR frameworks, render it from a client component or a no-SSR boundary. Do not create an `Editor` instance during server rendering.
+
 ## Examples
 
 <Examples component="editor" exclude="default" />
