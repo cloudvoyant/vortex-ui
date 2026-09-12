@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { SlashCommandItem } from '@cloudvoyant/vortex-ui';
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import * as LucideIcons from 'lucide-svelte';
   import type { Component } from 'svelte';
 
@@ -12,17 +12,24 @@
   let { items, command }: Props = $props();
 
   let selectedIndex = $state(0);
-  let prevItemsLength = $state(0);
+  let previousItems = $state<SlashCommandItem[] | undefined>();
+  let itemElements = $state<Array<HTMLButtonElement | undefined>>([]);
 
   function getIcon(iconName: string): Component | undefined {
     return (LucideIcons as unknown as Record<string, Component | undefined>)[iconName];
   }
 
-  // Reset selectedIndex when items array length changes
+  function setSelectedIndex(index: number) {
+    selectedIndex = index;
+    void tick().then(() => itemElements[index]?.scrollIntoView({ block: 'nearest' }));
+  }
+
+  // A new query supplies a new item set, so selection starts at its first command instead of
+  // retaining an index into the previous result set.
   $effect(() => {
-    if (items.length !== prevItemsLength) {
-      selectedIndex = 0;
-      prevItemsLength = items.length;
+    if (items !== previousItems) {
+      previousItems = items;
+      setSelectedIndex(0);
     }
   });
 
@@ -37,12 +44,12 @@
     if (items.length === 0) return false;
 
     if (event.key === 'ArrowUp') {
-      selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+      setSelectedIndex((selectedIndex - 1 + items.length) % items.length);
       return true;
     }
 
     if (event.key === 'ArrowDown') {
-      selectedIndex = (selectedIndex + 1) % items.length;
+      setSelectedIndex((selectedIndex + 1) % items.length);
       return true;
     }
 
@@ -79,8 +86,9 @@
           selectedIndex
             ? 'bg-accent text-accent-foreground'
             : ''}"
+          bind:this={itemElements[index]}
           onclick={() => selectItem(index)}
-          onmouseenter={() => (selectedIndex = index)}
+          onmouseenter={() => setSelectedIndex(index)}
         >
           <span class="inline-flex w-5 justify-center opacity-70">
             {#if IconComponent}

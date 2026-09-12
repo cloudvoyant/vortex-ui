@@ -8,8 +8,6 @@
     AlignCenter,
     AlignRight,
     AlignJustify,
-    Indent as IndentIcon,
-    Outdent as OutdentIcon,
     Link2,
   } from 'lucide-svelte';
 
@@ -198,16 +196,6 @@
     props.editor.chain().focus().setTextAlign(alignment).run();
   }
 
-  // The custom indent extension was dropped in this port: indentation is list-only and comes
-  // from StarterKit's ListItem (sink/lift). Paragraph/heading block indent is a documented
-  // behavior delta from the source editor.
-  function increaseIndent() {
-    props.editor.chain().focus().sinkListItem('listItem').run();
-  }
-
-  function decreaseIndent() {
-    props.editor.chain().focus().liftListItem('listItem').run();
-  }
 </script>
 
 <div
@@ -380,28 +368,6 @@
     <AlignJustify size={16} />
   </button>
 
-  <!-- Divider -->
-  <div class="w-px h-6 bg-border mx-1"></div>
-
-  <!-- Indentation -->
-  <button
-    type="button"
-    class="rounded px-2 py-1 hover:bg-accent hover:text-accent-foreground"
-    onclick={decreaseIndent}
-    aria-label="Decrease indent"
-    title="Decrease indent"
-  >
-    <OutdentIcon size={16} />
-  </button>
-  <button
-    type="button"
-    class="rounded px-2 py-1 hover:bg-accent hover:text-accent-foreground"
-    onclick={increaseIndent}
-    aria-label="Increase indent"
-    title="Increase indent"
-  >
-    <IndentIcon size={16} />
-  </button>
 </div>
 
 {#if showLinkInput && menu && props.editor}

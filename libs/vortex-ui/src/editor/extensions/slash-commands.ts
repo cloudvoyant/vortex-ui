@@ -56,7 +56,7 @@ export const slashCommands = Extension.create({
               category: 'suggested',
               shortcut: '#',
               command: ({ editor, range }) => {
-                editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run();
+                editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run();
               },
             },
             {
@@ -66,7 +66,7 @@ export const slashCommands = Extension.create({
               category: 'suggested',
               shortcut: '##',
               command: ({ editor, range }) => {
-                editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run();
+                editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run();
               },
             },
             {
@@ -76,7 +76,17 @@ export const slashCommands = Extension.create({
               category: 'suggested',
               shortcut: '###',
               command: ({ editor, range }) => {
-                editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run();
+                editor.chain().focus().deleteRange(range).setNode('heading', { level: 4 }).run();
+              },
+            },
+            {
+              title: 'Heading 4',
+              description: 'Minor section heading',
+              icon: 'Heading4',
+              category: 'suggested',
+              shortcut: '####',
+              command: ({ editor, range }) => {
+                editor.chain().focus().deleteRange(range).setNode('heading', { level: 5 }).run();
               },
             },
             {
@@ -168,16 +178,6 @@ export const slashCommands = Extension.create({
                   active: true,
                   position: range.from,
                 };
-              },
-            },
-            {
-              title: 'Link Post/Series',
-              description: 'Link to one of your posts or series',
-              icon: 'AtSign',
-              category: 'media',
-              shortcut: '@',
-              command: ({ editor, range }) => {
-                editor.chain().focus().deleteRange(range).insertContent('@').run();
               },
             },
           ];

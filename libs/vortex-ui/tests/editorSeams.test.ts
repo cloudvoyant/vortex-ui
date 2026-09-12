@@ -6,6 +6,7 @@ import {
   createLinkPreview,
   createUrlMention,
   defaultListboxFilter,
+  slashCommands,
   type MentionItem,
 } from '@cloudvoyant/vortex-ui';
 
@@ -35,6 +36,36 @@ describe('editor extension layer', () => {
   // `appendTransaction`, which needs a dispatched transaction on a real DOM view; a headless
   // editor neither fires it from an empty dispatch nor allows insertContent (no selection).
   // Enforcement is covered end-to-end by apps/docs/e2e/editor.spec.ts, which passes.
+
+  it('maps slash Heading 1–4 to h2–h5 and omits unsupported post linking', () => {
+    const suggestion = (
+      slashCommands.options as unknown as {
+        suggestion: { items: (args: { query: string }) => Array<{ title: string; command: Function }> };
+      }
+    ).suggestion;
+    const commands = suggestion.items({ query: '' });
+    expect(commands.map((command) => command.title)).toEqual(
+      expect.arrayContaining(['Heading 1', 'Heading 2', 'Heading 3', 'Heading 4']),
+    );
+    expect(commands.map((command) => command.title)).not.toContain('Link Post/Series');
+
+    const levels: number[] = [];
+    const chain = {
+      focus: () => chain,
+      deleteRange: () => chain,
+      setNode: (_name: string, attrs: { level: number }) => {
+        levels.push(attrs.level);
+        return chain;
+      },
+      run: () => true,
+    };
+    const editor = { chain: () => chain };
+
+    for (const title of ['Heading 1', 'Heading 2', 'Heading 3', 'Heading 4']) {
+      commands.find((command) => command.title === title)?.command({ editor, range: { from: 1, to: 2 } });
+    }
+    expect(levels).toEqual([2, 3, 4, 5]);
+  });
 
   it('round-trips seed JSON for autosave and prepopulation', () => {
     const seed = {

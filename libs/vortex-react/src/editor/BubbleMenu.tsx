@@ -1,8 +1,7 @@
 // libs/vortex-react/src/editor/BubbleMenu.tsx
 // React parity of BubbleMenu.svelte: the selection toolbar. Renders through Tiptap's React
-// BubbleMenu and composes vortex ToggleGroup + ColorPicker, with the same mark/align/indent
-// actions as the Svelte version. Indent/outdent are list-only (the indent extension was
-// dropped in this port).
+// BubbleMenu and composes vortex ToggleGroup + ColorPicker with matching mark and alignment
+// actions in each framework.
 import { BubbleMenu as TiptapBubbleMenu } from '@tiptap/react/menus';
 import type { Editor } from '@tiptap/react';
 import {
@@ -15,8 +14,6 @@ import {
   AlignCenter,
   AlignRight,
   AlignJustify,
-  Indent as IndentIcon,
-  Outdent as OutdentIcon,
 } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '..';
 import { ColorPicker } from './ColorPicker';
@@ -96,25 +93,6 @@ export function BubbleMenu({ editor }: BubbleMenuProps) {
             <Icon />
           </ToggleGroupItem>
         ))}
-      </ToggleGroup>
-
-      <ToggleGroup defaultValue={[]}>
-        <ToggleGroupItem
-          value="outdent"
-          size="sm"
-          aria-label="Decrease indent"
-          onClick={() => editor.chain().focus().liftListItem('listItem').run()}
-        >
-          <OutdentIcon />
-        </ToggleGroupItem>
-        <ToggleGroupItem
-          value="indent"
-          size="sm"
-          aria-label="Increase indent"
-          onClick={() => editor.chain().focus().sinkListItem('listItem').run()}
-        >
-          <IndentIcon />
-        </ToggleGroupItem>
       </ToggleGroup>
 
       <ToggleGroup defaultValue={[]}>

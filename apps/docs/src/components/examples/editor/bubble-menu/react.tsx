@@ -10,7 +10,7 @@ const seed = JSON.stringify({
       content: [
         {
           type: 'text',
-          text: 'Select any of this text to reveal the bubble menu: bold, italic, underline, colour, alignment, indent, and links.',
+          text: 'Select any of this text to reveal the bubble menu: bold, italic, underline, colour, alignment, and links.',
         },
       ],
     },
